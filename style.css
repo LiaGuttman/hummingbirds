@@ -35,7 +35,7 @@ button { font: inherit; color: inherit; }
 }
 .top > * { pointer-events: auto; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand .logo { width: 38px; height: 38px; color: var(--fg); flex: none; margin: -4px 0; }
+.brand .logo { width: 30px; height: 44px; color: var(--fg); flex: none; margin: -4px 0; }
 .brand h1 { font: 600 24px/1 var(--display); margin: 0; letter-spacing: -0.01em; }
 .count { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
@@ -295,7 +295,7 @@ button { font: inherit; color: inherit; }
   .top { gap: 10px; padding-left: 16px; padding-right: 16px; }
   .brand { gap: 8px; }
   .brand h1 { font-size: 21px; }
-  .brand .logo { width: 32px; height: 32px; }
+  .brand .logo { width: 26px; height: 38px; }
   .views button { padding: 6px 9px; font-size: 14px; }
   .search { width: 150px; }
   /* Wander shows only its icon; the word stays available to screen readers. */
@@ -312,7 +312,7 @@ button { font: inherit; color: inherit; }
   :root { --panel-w: 0px; }
   .top { flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px 4px; }
   .brand h1 { font-size: 20px; }
-  .brand .logo { width: 30px; height: 30px; }
+  .brand .logo { width: 24px; height: 34px; }
   .count { display: none; }
   .views { order: 3; width: 100%; justify-content: space-between; }
   .views button { padding: 6px 4px; font-size: 13px; flex: 1; white-space: nowrap; }
