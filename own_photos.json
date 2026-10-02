@@ -95,6 +95,64 @@
    "artist": "Lia Guttman",
    "license": "All rights reserved",
    "file": "White-throated Mountain-gem.jpeg"
+  },
+  {
+   "src": "photos/wtmgem1-2.jpg",
+   "w": 1125,
+   "h": 1500,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "white throated mountain gem.jpeg"
+  }
+ ],
+ "blchum1": [
+  {
+   "src": "photos/blchum1-1.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Blue-chested Hummingbird.jpeg"
+  }
+ ],
+ "gareme1": [
+  {
+   "src": "photos/gareme1-1.jpg",
+   "w": 1600,
+   "h": 1200,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Garden Emerald .jpeg"
+  }
+ ],
+ "rthhum": [
+  {
+   "src": "photos/rthhum-1.jpg",
+   "w": 1600,
+   "h": 1200,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Ruby-throated Hummingbird .jpeg"
+  }
+ ],
+ "rtlhum": [
+  {
+   "src": "photos/rtlhum-1.jpg",
+   "w": 480,
+   "h": 360,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Rufous-tailed Hummingbird.jpeg"
+  }
+ ],
+ "viosab1": [
+  {
+   "src": "photos/viosab1-1.jpg",
+   "w": 667,
+   "h": 1000,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Violet Sabrewing.png"
   }
  ]
 }
