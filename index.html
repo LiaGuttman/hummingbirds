@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-02d">
+<link rel="stylesheet" href="style.css?v=2026-10-02f">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -87,7 +87,7 @@
 <dialog class="lightbox" id="lightbox" aria-label="Photo">
   <button class="lb-close" id="lbClose" aria-label="Close">×</button>
   <button class="lb-nav prev" data-step="-1" aria-label="Previous photo">‹</button>
-  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <figure><img id="lbImg" alt=""><iframe id="lbFrame" hidden allowfullscreen></iframe><figcaption id="lbCap"></figcaption></figure>
   <button class="lb-nav next" data-step="1" aria-label="Next photo">›</button>
 </dialog>
 
@@ -96,8 +96,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-02d"></script>
-<script src="traits.js?v=2026-10-02d"></script>
-<script src="app.js?v=2026-10-02d"></script>
+<script src="geo.js?v=2026-10-02f"></script>
+<script src="traits.js?v=2026-10-02f"></script>
+<script src="app.js?v=2026-10-02f"></script>
 </body>
 </html>

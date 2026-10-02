@@ -6,6 +6,9 @@
 const DATA_URL = "species.json"; // public copy built by scripts/build_public_data.py
 const PHOTOS_URL = "photos.json"; // one Wikimedia Commons photo per species, from scripts/fetch_photos.py
 const OWN_PHOTOS_URL = "own_photos.json"; // hand-added photos (files in photos/), shown before the Commons one
+// Macaulay Library photos by asset number, shown through Macaulay's own embed (the only use their terms allow).
+// A last resort for species with no free photo; listed after everything else.
+const ML_PHOTOS_URL = "ml_photos.json";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 // Clade names are the informal names used by McGuire et al. (2014) for the nine main clades.
@@ -82,11 +85,13 @@ Promise.all([
   fetch(DATA_URL, { cache: "no-cache" }).then((r) => r.json()),
   fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
   fetch(PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
-  fetch(OWN_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))
-]).then(([species, atlas, photos, own]) => {
+  fetch(OWN_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
+  fetch(ML_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))
+]).then(([species, atlas, photos, own, ml]) => {
   S.species = species;
   S.photos = photos;
   S.ownPhotos = own;
+  S.mlPhotos = ml;
   species.forEach((s) => {
     S.byCode[s.code] = s;
     s._ph = Math.random() * Math.PI * 2;
@@ -915,7 +920,7 @@ function hoverAt(e) {
   if (s) {
     const cf = countryFilter();
     const st = cf && s.dist.find((d) => d.iso === cf.iso);
-    const ph = photosFor(s)[0];
+    const ph = photosFor(s).find((p) => !p.ml);
     showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))}</span>` : ""}`, e);
   } else if (S.hoverCluster) {
     const c = S.hoverCluster;
@@ -1166,12 +1171,20 @@ function renderPanel() {
   p.innerHTML = html;
 }
 
-// Every photo for a species: hand-added ones first, then the Commons pick.
+// Every photo for a species: Lia's own first, then Commons picks, then any Macaulay embeds.
 function photosFor(s) {
-  return [...(S.ownPhotos[s.code] || []), ...[].concat(S.photos[s.code] || [])];
+  const ml = (S.mlPhotos[s.code] || []).map((id) => ({ ml: String(id), page: `https://macaulaylibrary.org/asset/${encodeURIComponent(id)}` }));
+  return [...(S.ownPhotos[s.code] || []), ...[].concat(S.photos[s.code] || []), ...ml];
+}
+
+// An image, or for Macaulay photos their embed (which carries its own credit line).
+function mediaHTML(ph, name) {
+  if (ph.ml) return `<iframe src="${esc(ph.page)}/embed" title="${esc(name)}, photo from the Macaulay Library" loading="lazy" allowfullscreen></iframe>`;
+  return `<img src="${esc(ph.src)}" alt="${esc(name)}" data-act="zoom" title="View larger">`;
 }
 
 function creditHTML(ph) {
+  if (ph.ml) return `Photo from the <a href="${esc(ph.page)}" target="_blank" rel="noopener">Macaulay Library (ML${esc(ph.ml)})</a>; photographer credited in the photo`;
   const lic = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener">${esc(ph.license)}</a>` : esc(ph.license);
   const src = ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : "";
   return `Photo: ${esc(ph.artist)} · ${lic}${src}`;
@@ -1186,7 +1199,8 @@ function photoHTML(s) {
     <button class="pnav prev" data-act="photo" data-step="-1" aria-label="Previous photo">‹</button>
     <button class="pnav next" data-act="photo" data-step="1" aria-label="Next photo">›</button>
     <span class="pcount">1 / ${list.length}</span>` : "";
-  return `<figure class="photo" data-i="0"><div class="pframe"><img src="${esc(list[0].src)}" alt="${esc(s.common)}" data-act="zoom" title="View larger">${nav}</div>
+  return `<figure class="photo" data-i="0"><div class="pframe${list[0].ml ? " ml" : ""}"><div class="pmedia">${mediaHTML(list[0], s.common)}</div>
+    <button class="pzoom" data-act="zoom" aria-label="View larger" title="View larger">⤢</button>${nav}</div>
     <figcaption>${creditHTML(list[0])}</figcaption></figure>`;
 }
 
@@ -1196,14 +1210,23 @@ const bigSrc = (ph) => (/^https?:/.test(ph.src) ? thumb(ph.src, 1920) : ph.src);
 function openLightbox() {
   const fig = $("panel").querySelector(".photo");
   const s = S.byCode[S.selected];
-  S.lb = { list: photosFor(s), i: fig ? +fig.dataset.i : 0, name: s.common };
+  const list = photosFor(s), i = fig ? +fig.dataset.i : 0;
+  // Macaulay's embed doesn't load reliably at full screen (its bot check stalls), so open its own page instead.
+  if (list[i]?.ml) { window.open(list[i].page, "_blank", "noopener"); return; }
+  // The viewer steps through regular photos only; Macaulay ones stay on the card.
+  const shown = list.filter((p) => !p.ml);
+  S.lb = { list: shown, i: shown.indexOf(list[i]), name: s.common, all: list };
   renderLightbox();
   $("lightbox").showModal();
 }
 function renderLightbox() {
   const { list, i, name } = S.lb, ph = list[i];
-  const img = $("lbImg");
-  img.src = bigSrc(ph);
+  const img = $("lbImg"), frame = $("lbFrame");
+  img.hidden = !!ph.ml;
+  frame.hidden = !ph.ml;
+  if (ph.ml) { frame.src = `${ph.page}/embed`; frame.title = `${name}, photo from the Macaulay Library`; }
+  else frame.removeAttribute("src");
+  if (!ph.ml) img.src = bigSrc(ph);
   img.onerror = () => { img.onerror = null; img.src = ph.src; };
   img.alt = name;
   $("lbCap").innerHTML = `<b>${esc(name)}</b>${list.length > 1 ? ` · ${i + 1} / ${list.length}` : ""}<br>${creditHTML(ph)}`;
@@ -1216,7 +1239,7 @@ function stepLightbox(step) {
   renderLightbox();
   // Keep the card's carousel on the same photo, so closing lands where you were.
   const fig = $("panel").querySelector(".photo");
-  if (fig) stepPhoto((S.lb.i - +fig.dataset.i + n) % n);
+  if (fig) stepPhoto(S.lb.all.indexOf(S.lb.list[S.lb.i]) - +fig.dataset.i);
 }
 
 function stepPhoto(step) {
@@ -1225,7 +1248,8 @@ function stepPhoto(step) {
   if (!fig || list.length < 2) return;
   const i = (+fig.dataset.i + step + list.length) % list.length;
   fig.dataset.i = i;
-  fig.querySelector("img").src = list[i].src;
+  fig.querySelector(".pmedia").innerHTML = mediaHTML(list[i], S.byCode[S.selected].common);
+  fig.querySelector(".pframe").classList.toggle("ml", !!list[i].ml);
   fig.querySelector(".pcount").textContent = `${i + 1} / ${list.length}`;
   fig.querySelector("figcaption").innerHTML = creditHTML(list[i]);
 }
