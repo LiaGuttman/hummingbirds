@@ -78,11 +78,12 @@ function calledNames(list) {
 
 /* ---------- Setup ---------- */
 
+// Data files are re-checked with the server on every visit, so updates show up right away.
 Promise.all([
-  fetch(DATA_URL).then((r) => r.json()),
+  fetch(DATA_URL, { cache: "no-cache" }).then((r) => r.json()),
   fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
-  fetch(PHOTOS_URL).then((r) => r.json()).catch(() => ({})),
-  fetch(OWN_PHOTOS_URL).then((r) => r.json()).catch(() => ({}))
+  fetch(PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
+  fetch(OWN_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))
 ]).then(([species, atlas, photos, own]) => {
   S.species = species;
   S.photos = photos;

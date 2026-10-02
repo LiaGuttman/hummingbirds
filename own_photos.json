@@ -1,8 +1,100 @@
 {
-  "lesvio1": [
-    { "src": "photos/lesvio1-1.jpg", "w": 1600, "h": 1505, "artist": "Lia Guttman", "license": "All rights reserved" }
-  ],
-  "scihum1": [
-    { "src": "photos/scihum1-1.jpg", "w": 1600, "h": 1290, "artist": "Lia Guttman", "license": "All rights reserved" }
-  ]
+ "lesvio1": [
+  {
+   "src": "photos/lesvio1-1.jpg",
+   "w": 1600,
+   "h": 1505,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved"
+  }
+ ],
+ "scihum1": [
+  {
+   "src": "photos/scihum1-1.jpg",
+   "w": 1600,
+   "h": 1290,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved"
+  }
+ ],
+ "brvear1": [
+  {
+   "src": "photos/brvear1-1.jpg",
+   "w": 480,
+   "h": 360,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Brown Violetear.png"
+  }
+ ],
+ "fithum1": [
+  {
+   "src": "photos/fithum1-1.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Fiery-throated Hummingbird.png"
+  }
+ ],
+ "greher1": [
+  {
+   "src": "photos/greher1-1.jpg",
+   "w": 1600,
+   "h": 1314,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Green Hermit.png"
+  }
+ ],
+ "grcbri1": [
+  {
+   "src": "photos/grcbri1-1.jpg",
+   "w": 1600,
+   "h": 1200,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Green-crowned Brilliant.jpeg"
+  }
+ ],
+ "lobher": [
+  {
+   "src": "photos/lobher-1.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Long-billed Hermit.jpeg"
+  }
+ ],
+ "maghum1": [
+  {
+   "src": "photos/maghum1-1.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Rivoli's Hummingbird.jpeg"
+  }
+ ],
+ "whnjac1": [
+  {
+   "src": "photos/whnjac1-1.jpg",
+   "w": 1385,
+   "h": 1366,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "White-necked Jacobin.jpeg"
+  }
+ ],
+ "wtmgem1": [
+  {
+   "src": "photos/wtmgem1-1.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "White-throated Mountain-gem.jpeg"
+  }
+ ]
 }

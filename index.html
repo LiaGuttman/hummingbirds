@@ -9,24 +9,17 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css">
+<!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
+<link rel="stylesheet" href="style.css?v=2026-10-02b">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
 
 <header class="top">
   <div class="brand">
-    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
-      <defs><linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d8b"/><stop offset="1" stop-color="#b44dff"/></linearGradient></defs>
-      <g fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M46.5 25.5 Q 54 24.5 62 22"/>
-        <path d="M46.6 27 A 7 7 0 1 0 34.5 31"/>
-        <path d="M34.5 31 C 30 40 24 46 15 51 L 6 54"/>
-        <path d="M41 34.5 C 38.5 43 31 50 22 54.5 L 14 60"/>
-        <path d="M33 30 C 27 21 21 13 13 6 C 19 15 25 24 30 33"/>
-      </g>
-      <circle cx="40.5" cy="26" r="2" fill="currentColor"/>
-      <path d="M46.6 28.5 C 46.3 31.5 44.5 33.8 41 34.5" fill="none" stroke="url(#logo-g)" stroke-width="3.6" stroke-linecap="round"/>
+    <!-- Logo: an original one-line hummingbird, drawn for this site. -->
+    <svg class="logo" viewBox="3 3 100 95" aria-hidden="true">
+      <path d="M46 56 C 34 40 24 22 14 8 C 34 16 48 30 56 44 C 58 36 62 28 70 24 C 77 21 82 25 82 30 L 98 26 L 81 35 C 79 50 68 64 50 74 C 36 82 22 88 8 93 C 22 82 36 72 50 58" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <h1>Hummingbirds</h1>
     <span class="count" id="count"></span>
@@ -79,7 +72,7 @@
     <dt>Conservation status and trend</dt>
     <dd><a href="https://datazone.birdlife.org/">BirdLife International</a> (the IUCN Red List authority for birds), and the <a href="https://www.iucnredlist.org/">IUCN Red List of Threatened Species</a> via GBIF where a species doesn't match a BirdLife species one-to-one.</dd>
     <dt>Photos</dt>
-    <dd>From <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>. Each photo's author, license and original are linked on its species card. Photos are shown resized, and cropped to fit on the card.</dd>
+    <dd>From <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>. Each photo's author, license and original are linked on its species card. Photos are shown resized, never cropped.</dd>
     <dt>Map</dt>
     <dd><a href="https://www.naturalearthdata.com/">Natural Earth</a> (public domain), via the <a href="https://github.com/topojson/world-atlas">world-atlas</a> package.</dd>
   </dl>
@@ -96,8 +89,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js"></script>
-<script src="traits.js"></script>
-<script src="app.js"></script>
+<script src="geo.js?v=2026-10-02b"></script>
+<script src="traits.js?v=2026-10-02b"></script>
+<script src="app.js?v=2026-10-02b"></script>
 </body>
 </html>
