@@ -28,8 +28,15 @@ const HINTS = {
   swarm:  "Every species, colored by subfamily. Hover to meet one, click to open its card.",
   family: "Big circles are subfamilies, dashed circles are tribes, small circles are genera. Click a circle to step inside.",
   world:  "Each bird sits near the heart of its range. Click a country to see who lives there.",
-  size:   "Lightest to heaviest, on a log scale. A paperclip weighs about 1 g."
+  size:   "Lightest to heaviest, on a log scale. A paperclip weighs about 1 g.",
+  status: "How safe each species is, from the IUCN Red List: least concern on the left, extinct on the right."
 };
+// Red List categories in order of risk, with the IUCN's own colors (Extinct lightened to show on the dark sky).
+const STATUS = [
+  { key: "LC", c: "#60c659" }, { key: "NT", c: "#cce226" }, { key: "VU", c: "#f9e814" },
+  { key: "EN", c: "#fc7f3f" }, { key: "CR", c: "#ff4a2e" }, { key: "EX", c: "#8a93a8" },
+  { key: "DD", c: "#c9cfdc", label: "Not enough data", also: ["NE"] }
+];
 
 const S = {
   species: [], byCode: {}, view: "swarm",
@@ -226,6 +233,7 @@ function relayout(opts = {}) {
   if (S.view === "swarm") out = layoutSwarm(active, R);
   else if (S.view === "family") out = layoutFamily(active, R);
   else if (S.view === "world") out = layoutWorld(active, R);
+  else if (S.view === "status") out = layoutStatus(active, R);
   else out = layoutSize(active, R);
 
   const now = performance.now();
@@ -521,6 +529,32 @@ function layoutSize(active, R) {
   return { targets, deco: { kind: "size", x, axisY: Math.min(bottom + 28, R.y1 - 4), top, pins: pinList } };
 }
 
+// One column per Red List category, birds stacked from the scale upward like a picture chart.
+// Least concern holds most species, so it gets a wider column; every bird is drawn the same size.
+function layoutStatus(active, R) {
+  const groups = STATUS.map((g) => ({ ...g, list: active.filter((s) => s.iucn === g.key || (g.also || []).includes(s.iucn)).sort((a, b) => a.seq - b.seq) }));
+  const units = groups.map((g) => (g.key === "LC" ? 3 : 1));
+  const gap = 18, unitW = (R.w - gap * (groups.length - 1)) / d3.sum(units);
+  const top = R.y0 + 30, axisY = R.y1 - (W <= 800 ? 84 : 46);
+  let x = R.x0;
+  groups.forEach((g, i) => { g.x0 = x; g.w = units[i] * unitW; x += g.w + gap; });
+  // Largest cell that lets every column fit between the top and the scale.
+  let cell = 30;
+  const fits = (c) => groups.every((g) => Math.ceil(g.list.length / Math.max(1, Math.floor(g.w / c))) * c <= axisY - 14 - top);
+  while (cell > 6 && !fits(cell)) cell -= 0.5;
+  const r = cell * 0.36, targets = new Map();
+  for (const g of groups) {
+    const cols = Math.max(1, Math.min(Math.floor(g.w / cell), g.list.length));
+    const left = g.x0 + (g.w - cols * cell) / 2;
+    g.list.forEach((s, i) => {
+      const row = Math.floor(i / cols), col = i % cols;
+      targets.set(s.code, { x: left + (col + 0.5) * cell, y: axisY - 14 - (row + 0.5) * cell, r, a: 1 });
+    });
+    g.topY = axisY - 14 - Math.ceil(g.list.length / cols) * cell;
+  }
+  return { targets, deco: { kind: "status", groups, axisY } };
+}
+
 /* ---------- Animation loop ---------- */
 
 function currentTarget(g) {
@@ -583,6 +617,7 @@ function frame(now) {
 
   if (S.deco?.kind === "family") drawClusterLabels(decoA);
   if (S.deco?.kind === "size") drawSizeAxis(decoA);
+  if (S.deco?.kind === "status") drawStatusScale(decoA);
   if (S.view === "world" && M.alpha > 0.5) drawCountryLabels();
   drawWanderPath();
 
@@ -810,6 +845,36 @@ function drawSizeAxis(a) {
   ctx.globalAlpha = 1;
 }
 
+function drawStatusScale(a) {
+  const { groups, axisY: y } = S.deco;
+  const real = groups.filter((g) => g.key !== "DD");
+  // A colored scale bar under the columns, blending from safe to gone.
+  const x0 = real[0].x0, x1 = real[real.length - 1].x0 + real[real.length - 1].w;
+  const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+  real.forEach((g) => grad.addColorStop(clamp((g.x0 + g.w / 2 - x0) / (x1 - x0), 0, 1), g.c));
+  ctx.globalAlpha = a * 0.9; ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.roundRect(x0, y - 3, x1 - x0, 6, 3); ctx.fill();
+  const dd = groups.find((g) => g.key === "DD");
+  ctx.fillStyle = dd.c; ctx.globalAlpha = a * 0.5;
+  ctx.beginPath(); ctx.roundRect(dd.x0, y - 3, dd.w, 6, 3); ctx.fill();
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const g of groups) {
+    const cx = g.x0 + g.w / 2;
+    ctx.globalAlpha = a; ctx.fillStyle = g.c;
+    ctx.font = "600 13px 'IBM Plex Sans', sans-serif";
+    // Narrow columns (phones) show the Red List code instead of the full name; the hover tip spells it out.
+    const name = g.w < 70 ? (g.key === "DD" ? "?" : g.key) : g.label || IUCN[g.key];
+    const words = name.split(" "), lines = g.w < ctx.measureText(name).width + 6 && words.length > 1 ? [words.slice(0, -1).join(" "), words.at(-1)] : [name];
+    lines.forEach((l, i) => ctx.fillText(l, cx, y + 10 + i * 16));
+    // The count sits on top of each column.
+    ctx.globalAlpha = a * 0.85; ctx.fillStyle = "#d4def5";
+    ctx.font = "500 13px 'IBM Plex Sans', sans-serif"; ctx.textBaseline = "bottom";
+    ctx.fillText(g.list.length ? `${g.list.length}` : "none", cx, g.topY - 4);
+    ctx.textBaseline = "top";
+  }
+  ctx.globalAlpha = 1;
+}
+
 function drawWanderPath() {
   const p = S.wander.path;
   if (p.length < 2) return;
@@ -929,7 +994,7 @@ function hoverAt(e) {
     const cf = countryFilter();
     const st = cf && s.dist.find((d) => d.iso === cf.iso);
     const ph = photosFor(s).find((p) => !p.ml);
-    showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))}</span>` : ""}`, e);
+    showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${S.view === "status" ? `<span>${esc(IUCN[s.iucn] || s.iucn)}${s.trend && s.trend !== "Unknown" ? `, numbers ${esc(s.trend.toLowerCase())}` : ""}</span>` : ""}${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))} · one of ${onlyIn(s.endemic).length} species found only there</span>` : ""}`, e);
   } else if (S.hoverCluster) {
     const c = S.hoverCluster;
     const clade = cladeOf(c.level, c.value);
@@ -1174,7 +1239,7 @@ function renderPanel() {
 
   if (cf) {
     const only = onlyIn(cf.name).filter((s) => S.active.has(s.code));
-    html += `<h3>Found only in ${esc(cf.label)}</h3>` + (only.length ? birdChips(only) : `<p class="empty">No hummingbird here is found only in ${esc(cf.label)}.</p>`);
+    html += `<h3>Found only in ${esc(cf.label)}${only.length ? ` (${only.length} species)` : ""}</h3>` + (only.length ? birdChips(only) : `<p class="empty">No hummingbird here is found only in ${esc(cf.label)}.</p>`);
   }
   p.innerHTML = html;
 }
@@ -1281,7 +1346,7 @@ function cardHTML(s) {
   <h2>${esc(s.common)}</h2>
   <div class="sci big">${esc(s.sci)}</div>
   <div class="es">${esc(s.es)}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">Endemic: found only in ${esc(shortCountry(s.endemic))}</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}" target="_blank" rel="noopener">eBird page ↗</a></p>
+  <p class="links">${s.endemic ? `<span class="endemic">Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}" target="_blank" rel="noopener">eBird page ↗</a></p>
 
   <h3>At a glance</h3>
   <dl class="facts">
@@ -1306,7 +1371,7 @@ function cardHTML(s) {
   <h3>${relTitle}</h3>
   ${birdChips(rel) || `<p class="empty">None.</p>`}
 
-  ${s.endemic ? `<h3>Other hummingbirds found only in ${esc(shortCountry(s.endemic))}</h3>${birdChips(only) || `<p class="empty">It is the only hummingbird found only in ${esc(shortCountry(s.endemic))}.</p>`}` : ""}
+  ${s.endemic ? `<h3>Other hummingbirds found only in ${esc(shortCountry(s.endemic))}${only.length ? ` (${only.length})` : ""}</h3>${birdChips(only) || `<p class="empty">It is the only hummingbird found only in ${esc(shortCountry(s.endemic))}.</p>`}` : ""}
 
   `;
 }

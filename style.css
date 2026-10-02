@@ -314,9 +314,9 @@ button { font: inherit; color: inherit; }
   .wander { padding: 6px 10px; margin-left: auto; }
   .search { order: 4; width: 100%; margin-left: 0; }
   .trail { top: 146px; left: 16px; right: 16px; }
-  .credits-link { right: 16px; bottom: 34px; }
+  .credits-link { right: 16px; bottom: 12px; }
   .countries { left: 16px; right: 16px; bottom: 52px; }
-  .hint { left: 16px; right: 16px; bottom: 12px; }
+  .hint { left: 16px; right: 132px; bottom: 12px; }
   .panel {
     top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58vh;
     transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);
