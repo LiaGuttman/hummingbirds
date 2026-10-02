@@ -4,6 +4,7 @@
 // narrows which shapes are "active" in every view.
 
 const DATA_URL = "species.json"; // public copy built by scripts/build_public_data.py
+const PHOTOS_URL = "photos.json"; // one Wikimedia Commons photo per species, from scripts/fetch_photos.py
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 const PANEL_W = 400;
 
@@ -49,6 +50,12 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const shortCountry = (c) => c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
 const massOf = (s) => s.mass || 4;
+// A Commons thumbnail at one of the standard widths Commons serves (250, 330, 500, 960).
+function thumb(src, w) {
+  if (/\/\d+px-[^/]+$/.test(src)) return src.replace(/\/\d+px-([^/]+)$/, `/${w}px-$1`);
+  const m = src.match(/^(.*\/commons\/)(.\/..\/)([^/]+)$/);
+  return m ? `${m[1]}thumb/${m[2]}${m[3]}/${w}px-${m[3]}` : src;
+}
 const isFaint = (st) => /Rare|Uncertain|extinct/i.test(st);
 
 function cladeOf(level, value) {
@@ -71,9 +78,11 @@ function calledNames(list) {
 
 Promise.all([
   fetch(DATA_URL).then((r) => r.json()),
-  fetch(ATLAS_URL).then((r) => r.json()).catch(() => null)
-]).then(([species, atlas]) => {
+  fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
+  fetch(PHOTOS_URL).then((r) => r.json()).catch(() => ({}))
+]).then(([species, atlas, photos]) => {
   S.species = species;
+  S.photos = photos;
   species.forEach((s) => {
     S.byCode[s.code] = s;
     s._ph = Math.random() * Math.PI * 2;
@@ -898,7 +907,8 @@ function hoverAt(e) {
   if (s) {
     const cf = countryFilter();
     const st = cf && s.dist.find((d) => d.iso === cf.iso);
-    showTip(`<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))}</span>` : ""}`, e);
+    const ph = S.photos[s.code];
+    showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))}</span>` : ""}`, e);
   } else if (S.hoverCluster) {
     const c = S.hoverCluster;
     const clade = cladeOf(c.level, c.value);
@@ -1140,6 +1150,15 @@ function renderPanel() {
   p.innerHTML = html;
 }
 
+// The species' Commons photo with its credit line, or the animated shape when there's no free photo.
+function photoHTML(s) {
+  const ph = S.photos[s.code];
+  if (!ph) return `<div class="swatch"><canvas></canvas><span class="photo-note">No free photo yet</span></div>`;
+  const lic = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener">${esc(ph.license)}</a>` : esc(ph.license);
+  return `<figure class="photo"><img src="${esc(ph.src)}" alt="${esc(s.common)}">
+    <figcaption>Photo: ${esc(ph.artist)} · ${lic} · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a></figcaption></figure>`;
+}
+
 function cardHTML(s) {
   const clips = s.mass ? Math.max(1, Math.round(s.mass)) : 0;
   const cf = countryFilter();
@@ -1154,7 +1173,7 @@ function cardHTML(s) {
 
   return `
   <button class="close" data-act="close" aria-label="Close">×</button>
-  <div class="swatch"><canvas></canvas><span class="photo-note">Photo coming later</span></div>
+  ${photoHTML(s)}
   ${S.wander.on && S.wander.note ? `<p class="wandernote">${esc(S.wander.note)}</p>` : ""}
   <h2>${esc(s.common)}</h2>
   <div class="sci big">${esc(s.sci)}</div>

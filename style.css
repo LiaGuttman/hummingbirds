@@ -175,6 +175,11 @@ button { font: inherit; color: inherit; }
   width: 100%; height: 140px; border-radius: 12px; margin: 0 0 14px;
   position: relative; overflow: hidden;
 }
+.photo { margin: 0 0 14px; }
+.photo img { display: block; width: 100%; height: 240px; object-fit: cover; border-radius: 12px; background: rgba(255,255,255,0.04); }
+.photo figcaption { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
+.photo figcaption a { color: var(--muted); }
+.photo figcaption a:hover { color: var(--fg); }
 .swatch canvas { width: 100%; height: 100%; display: block; }
 .swatch .photo-note {
   position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: rgba(255,255,255,0.6);
@@ -234,6 +239,7 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 .tip b { font-size: 17px; font-weight: 600; }
+.tip .tip-img { width: 220px; height: 150px; object-fit: cover; border-radius: 6px; margin: 2px 0 6px; }
 .tip b.sci { font: italic 600 18px var(--display); }
 .tip em { font: italic 15px var(--display); color: var(--muted); }
 .tip span { color: var(--muted); font-size: 13px; }
