@@ -34,7 +34,8 @@ button { font: inherit; color: inherit; }
   z-index: 20;
 }
 .top > * { pointer-events: auto; }
-.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .logo { width: 38px; height: 38px; color: var(--fg); flex: none; margin: -4px 0; }
 .brand h1 { font: 600 24px/1 var(--display); margin: 0; letter-spacing: -0.01em; }
 .count { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
@@ -269,6 +270,7 @@ button { font: inherit; color: inherit; }
   :root { --panel-w: 0px; }
   .top { flex-wrap: wrap; gap: 8px 12px; padding: 10px 16px 4px; }
   .brand h1 { font-size: 20px; }
+  .brand .logo { width: 30px; height: 30px; }
   .count { display: none; }
   .views { order: 3; width: 100%; justify-content: space-between; }
   .views button { padding: 6px 4px; font-size: 13px; flex: 1; white-space: nowrap; }
