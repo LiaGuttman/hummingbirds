@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hummingbird Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
+
+<header class="top">
+  <div class="brand">
+    <h1>Hummingbirds</h1>
+    <span class="count" id="count"></span>
+  </div>
+  <nav class="views" role="tablist" aria-label="Ways to arrange the collection">
+    <button role="tab" data-view="swarm">Collection</button>
+    <button role="tab" data-view="family">Family tree</button>
+    <button role="tab" data-view="world">World</button>
+    <button role="tab" data-view="size">Size</button>
+  </nav>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search species or groups" autocomplete="off" spellcheck="false"
+           aria-label="Search species or groups" aria-controls="results" aria-expanded="false" role="combobox">
+    <ul class="results" id="results" role="listbox" hidden></ul>
+  </div>
+  <button class="wander" id="wander" aria-pressed="false">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15c3-8 6 2 9-5s5-4 5-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="6" r="1.8" fill="currentColor"/></svg>
+    <span>Wander</span>
+  </button>
+</header>
+
+<ol class="trail" id="trail" aria-label="Where you are"></ol>
+
+<div class="hint" id="hint"></div>
+<div class="countries" id="countries" hidden></div>
+
+<aside class="panel" id="panel" aria-live="polite"></aside>
+
+<button class="credits-link" id="creditsBtn">About &amp; credits</button>
+
+<dialog class="credits" id="credits" aria-labelledby="credits-title">
+  <button class="close" id="creditsClose" aria-label="Close">×</button>
+  <h2 id="credits-title">About &amp; credits</h2>
+  <p>This explorer shows the 363 hummingbird species (family Trochilidae) recognized in the eBird/Clements taxonomy. Each shape is one species; photos will come later.</p>
+
+  <h3>Data sources</h3>
+  <dl>
+    <dt>Species list and names</dt>
+    <dd><a href="https://www.birds.cornell.edu/clementschecklist/">eBird/Clements Checklist of Birds of the World</a>, via the <a href="https://ebird.org">eBird</a> API (Cornell Lab of Ornithology). English and Spanish (Mexico) names come from the same source. IOC names, where they differ, are from the <a href="https://www.worldbirdnames.org/">IOC World Bird List</a> v15 (Gill, Donsker &amp; Rasmussen, eds.).</dd>
+    <dt>Subfamilies and tribes</dt>
+    <dd>Dickinson, E.C. &amp; Remsen, J.V. Jr. (eds.) 2013. <i>The Howard and Moore Complete Checklist of the Birds of the World</i>, 4th ed., vol. 1. Aves Press.<br>
+        McGuire, J.A. et al. 2014. <a href="https://doi.org/10.1016/j.cub.2014.03.016">Molecular phylogenetics and the diversification of hummingbirds</a>. <i>Current Biology</i> 24: 910–916. The informal clade names (topazes, hermits, mangoes, coquettes, brilliants, Patagona, mountain gems, bees, emeralds) follow this paper.</dd>
+    <dt>Countries</dt>
+    <dd><a href="https://datazone.birdlife.org/">BirdLife International DataZone</a> country lists, checked against eBird records from the <a href="https://www.gbif.org/dataset/4fa7b334-ce0d-4e88-aaae-2e0c138d049e">eBird Observation Dataset</a> (Cornell Lab of Ornithology, CC BY 4.0), accessed through the GBIF.org API. Six rare species use ranges from the published literature.</dd>
+    <dt>Weight, bill, habitat, movement</dt>
+    <dd>AVONET: Tobias, J.A. et al. 2022. <a href="https://doi.org/10.1111/ele.13898">AVONET: morphological, ecological and geographical data for all birds</a>. <i>Ecology Letters</i> 25: 581–597. Licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Recently split species use the values of the species they were split from.</dd>
+    <dt>Conservation status and trend</dt>
+    <dd><a href="https://datazone.birdlife.org/">BirdLife International</a> (the IUCN Red List authority for birds), and the <a href="https://www.iucnredlist.org/">IUCN Red List of Threatened Species</a> via GBIF where a species doesn't match a BirdLife species one-to-one.</dd>
+    <dt>Map</dt>
+    <dd><a href="https://www.naturalearthdata.com/">Natural Earth</a> (public domain), via the <a href="https://github.com/topojson/world-atlas">world-atlas</a> package.</dd>
+  </dl>
+
+  <h3>Notes on groups</h3>
+  <p>The short "What they share" notes are being reviewed against published sources. The weight, bill, habitat, country and status figures beside them are calculated from the data above.</p>
+
+  <h3>Built with</h3>
+  <p><a href="https://d3js.org/">D3</a> and <a href="https://github.com/topojson/topojson">TopoJSON</a> (ISC license). Fonts: <a href="https://fonts.google.com/specimen/Newsreader">Newsreader</a> and <a href="https://fonts.google.com/specimen/IBM+Plex+Sans">IBM Plex Sans</a> (SIL Open Font License).</p>
+</dialog>
+
+<div class="tip" id="tip" hidden></div>
+<div class="loading" id="loading">Gathering hummingbirds…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="geo.js"></script>
+<script src="traits.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
