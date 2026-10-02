@@ -5,6 +5,7 @@
 
 const DATA_URL = "species.json"; // public copy built by scripts/build_public_data.py
 const PHOTOS_URL = "photos.json"; // one Wikimedia Commons photo per species, from scripts/fetch_photos.py
+const OWN_PHOTOS_URL = "own_photos.json"; // hand-added photos (files in photos/), shown before the Commons one
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 const PANEL_W = 400;
 
@@ -52,6 +53,7 @@ const shortCountry = (c) => c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
 const massOf = (s) => s.mass || 4;
 // A Commons thumbnail at one of the standard widths Commons serves (250, 330, 500, 960).
 function thumb(src, w) {
+  if (!/^https?:/.test(src)) return src;
   if (/\/\d+px-[^/]+$/.test(src)) return src.replace(/\/\d+px-([^/]+)$/, `/${w}px-$1`);
   const m = src.match(/^(.*\/commons\/)(.\/..\/)([^/]+)$/);
   return m ? `${m[1]}thumb/${m[2]}${m[3]}/${w}px-${m[3]}` : src;
@@ -79,10 +81,12 @@ function calledNames(list) {
 Promise.all([
   fetch(DATA_URL).then((r) => r.json()),
   fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
-  fetch(PHOTOS_URL).then((r) => r.json()).catch(() => ({}))
-]).then(([species, atlas, photos]) => {
+  fetch(PHOTOS_URL).then((r) => r.json()).catch(() => ({})),
+  fetch(OWN_PHOTOS_URL).then((r) => r.json()).catch(() => ({}))
+]).then(([species, atlas, photos, own]) => {
   S.species = species;
   S.photos = photos;
+  S.ownPhotos = own;
   species.forEach((s) => {
     S.byCode[s.code] = s;
     s._ph = Math.random() * Math.PI * 2;
@@ -907,7 +911,7 @@ function hoverAt(e) {
   if (s) {
     const cf = countryFilter();
     const st = cf && s.dist.find((d) => d.iso === cf.iso);
-    const ph = S.photos[s.code];
+    const ph = photosFor(s)[0];
     showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))}</span>` : ""}`, e);
   } else if (S.hoverCluster) {
     const c = S.hoverCluster;
@@ -930,17 +934,22 @@ function bindPanels() {
   panel.addEventListener("click", (e) => {
     const t = e.target.closest("[data-act]"); if (!t) return;
     const act = t.dataset.act;
-    stopWander();
+    if (act !== "photo") stopWander();
     if (act === "close") { S.selected = null; renderPanel(); }
     else if (act === "bird") { S.peek = null; select(t.dataset.code); }
     else if (act === "pop") popTo(+t.dataset.i);
+    else if (act === "photo") stepPhoto(+t.dataset.step);
     else if (act === "country") { pushFilter(countryFilterFor(t.dataset.iso)); if (S.view !== "world") setView("world"); }
     else if (act === "taxon") { pushFilter(taxonFilter(t.dataset.level, t.dataset.value)); if (t.dataset.view && S.view !== t.dataset.view) setView(t.dataset.view); }
   });
   panel.addEventListener("pointerover", (e) => { const c = e.target.closest("[data-code]"); S.peek = c ? c.dataset.code : null; });
   panel.addEventListener("pointerleave", () => { S.peek = null; });
 
-  addEventListener("keydown", (e) => { if (e.key === "Escape") { stopWander(); S.selected = null; renderPanel(); } });
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { stopWander(); S.selected = null; renderPanel(); }
+    // Left/right arrows flip through a species' photos, unless the user is typing.
+    if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);
+  });
   let rt;
   addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { resize(); relayout({ quick: true }); }, 120); });
 }
@@ -1150,13 +1159,39 @@ function renderPanel() {
   p.innerHTML = html;
 }
 
-// The species' Commons photo with its credit line, or the animated shape when there's no free photo.
-function photoHTML(s) {
-  const ph = S.photos[s.code];
-  if (!ph) return `<div class="swatch"><canvas></canvas><span class="photo-note">No free photo yet</span></div>`;
+// Every photo for a species: hand-added ones first, then the Commons pick.
+function photosFor(s) {
+  return [...(S.ownPhotos[s.code] || []), ...(S.photos[s.code] ? [S.photos[s.code]] : [])];
+}
+
+function creditHTML(ph) {
   const lic = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener">${esc(ph.license)}</a>` : esc(ph.license);
-  return `<figure class="photo"><img src="${esc(ph.src)}" alt="${esc(s.common)}">
-    <figcaption>Photo: ${esc(ph.artist)} · ${lic} · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a></figcaption></figure>`;
+  const src = ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : "";
+  return `Photo: ${esc(ph.artist)} · ${lic}${src}`;
+}
+
+// The species' photos as a small carousel (arrows only when there's more than one),
+// or the animated shape when there's no free photo.
+function photoHTML(s) {
+  const list = photosFor(s);
+  if (!list.length) return `<div class="swatch"><canvas></canvas><span class="photo-note">No free photo yet</span></div>`;
+  const nav = list.length > 1 ? `
+    <button class="pnav prev" data-act="photo" data-step="-1" aria-label="Previous photo">‹</button>
+    <button class="pnav next" data-act="photo" data-step="1" aria-label="Next photo">›</button>
+    <span class="pcount">1 / ${list.length}</span>` : "";
+  return `<figure class="photo" data-i="0"><div class="pframe"><img src="${esc(list[0].src)}" alt="${esc(s.common)}">${nav}</div>
+    <figcaption>${creditHTML(list[0])}</figcaption></figure>`;
+}
+
+function stepPhoto(step) {
+  const fig = $("panel").querySelector(".photo");
+  const list = photosFor(S.byCode[S.selected]);
+  if (!fig || list.length < 2) return;
+  const i = (+fig.dataset.i + step + list.length) % list.length;
+  fig.dataset.i = i;
+  fig.querySelector("img").src = list[i].src;
+  fig.querySelector(".pcount").textContent = `${i + 1} / ${list.length}`;
+  fig.querySelector("figcaption").innerHTML = creditHTML(list[i]);
 }
 
 function cardHTML(s) {
