@@ -1168,7 +1168,7 @@ function renderPanel() {
 
 // Every photo for a species: hand-added ones first, then the Commons pick.
 function photosFor(s) {
-  return [...(S.ownPhotos[s.code] || []), ...(S.photos[s.code] ? [S.photos[s.code]] : [])];
+  return [...(S.ownPhotos[s.code] || []), ...[].concat(S.photos[s.code] || [])];
 }
 
 function creditHTML(ph) {
