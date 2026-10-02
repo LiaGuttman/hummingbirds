@@ -1272,7 +1272,10 @@ function photoHTML(s) {
     <button class="pnav prev" data-act="photo" data-step="-1" aria-label="Previous photo">‹</button>
     <button class="pnav next" data-act="photo" data-step="1" aria-label="Next photo">›</button>
     <span class="pcount">1 / ${list.length}</span>` : "";
-  return `<figure class="photo" data-i="0"><div class="pframe${list[0].ml ? " ml" : ""}"><div class="pmedia">${mediaHTML(list[0], s.common)}</div>
+  // The frame takes the shape of the tallest photo (within limits), so photos fill it instead of sitting between bars.
+  const shapes = list.filter((p) => p.w && p.h).map((p) => p.w / p.h);
+  const ratio = shapes.length ? clamp(Math.min(...shapes), 0.8, 1.6) : 4 / 3;
+  return `<figure class="photo" data-i="0"><div class="pframe${list[0].ml ? " ml" : ""}" style="aspect-ratio:${ratio.toFixed(3)}"><div class="pmedia">${mediaHTML(list[0], s.common)}</div>
     <button class="pzoom" data-act="zoom" aria-label="View larger" title="View larger">⤢</button>${nav}</div>
     <figcaption>${creditHTML(list[0])}</figcaption></figure>`;
 }
@@ -1340,8 +1343,7 @@ function cardHTML(s) {
     `<button class="place" data-act="taxon" data-level="${level}" data-value="${esc(value)}" data-view="family"><span class="rank">${RANK[level]}</span><b class="sci">${esc(value)}</b>${clade ? `<em>${esc(clade)}</em>` : ""}</button>`;
 
   return `
-  <button class="close" data-act="close" aria-label="Close">×</button>
-  ${photoHTML(s)}
+  <div class="hero"><button class="close" data-act="close" aria-label="Close">×</button>${photoHTML(s)}</div>
   ${S.wander.on && S.wander.note ? `<p class="wandernote">${esc(S.wander.note)}</p>` : ""}
   <h2>${esc(s.common)}</h2>
   <div class="sci big">${esc(s.sci)}</div>
