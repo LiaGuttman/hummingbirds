@@ -381,3 +381,11 @@ button { font: inherit; color: inherit; }
   .lightbox[open] { grid-template-columns: 44px 1fr 44px; }
   .lb-nav { width: 36px; height: 36px; font-size: 22px; }
 }
+
+/* The flying 3D Red-tailed Comet (comet.js). Hidden between visits; the panel stays on top of it. */
+.comet {
+  position: fixed; left: 0; top: 0; z-index: 4; background: transparent; --poster-color: transparent;
+  opacity: 0; pointer-events: none; transition: opacity .6s; cursor: pointer;
+}
+.comet.on { opacity: 1; pointer-events: auto; }
+.comet:focus { outline: none; }
