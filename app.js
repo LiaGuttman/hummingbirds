@@ -7,7 +7,6 @@ const DATA_URL = "species.json"; // public copy built by scripts/build_public_da
 const PHOTOS_URL = "photos.json"; // one Wikimedia Commons photo per species, from scripts/fetch_photos.py
 const OWN_PHOTOS_URL = "own_photos.json"; // hand-added photos (files in photos/), shown before the Commons one
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
-const PANEL_W = 400;
 
 // Clade names are the informal names used by McGuire et al. (2014) for the nine main clades.
 const SUB = {
@@ -109,6 +108,7 @@ Promise.all([
   bindUI();
   bindSearch();
   bindCredits();
+  bindLightbox();
   setView("swarm", { first: true });
   $("loading").classList.add("done");
   requestAnimationFrame(frame);
@@ -121,11 +121,14 @@ function resize() {
   buildMap();
 }
 
+// The side panel's width comes from the stylesheet (--panel-w), which narrows it on medium screens.
+const panelWidth = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--panel-w")) || 0;
+
 function stageRect(view) {
   const mobile = W <= 800;
   const x0 = mobile ? 16 : 28;
   const y0 = mobile ? 180 : 104;
-  const x1 = W - (mobile ? 16 : PANEL_W + 16 + 28);
+  const x1 = W - (mobile ? 16 : panelWidth() + 16 + 28);
   const y1 = H - (view === "world" ? (mobile ? 100 : 108) : 52);
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
@@ -935,11 +938,12 @@ function bindPanels() {
   panel.addEventListener("click", (e) => {
     const t = e.target.closest("[data-act]"); if (!t) return;
     const act = t.dataset.act;
-    if (act !== "photo") stopWander();
+    if (act !== "photo" && act !== "zoom") stopWander();
     if (act === "close") { S.selected = null; renderPanel(); }
     else if (act === "bird") { S.peek = null; select(t.dataset.code); }
     else if (act === "pop") popTo(+t.dataset.i);
     else if (act === "photo") stepPhoto(+t.dataset.step);
+    else if (act === "zoom") openLightbox();
     else if (act === "country") { pushFilter(countryFilterFor(t.dataset.iso)); if (S.view !== "world") setView("world"); }
     else if (act === "taxon") { pushFilter(taxonFilter(t.dataset.level, t.dataset.value)); if (t.dataset.view && S.view !== t.dataset.view) setView(t.dataset.view); }
   });
@@ -947,6 +951,8 @@ function bindPanels() {
   panel.addEventListener("pointerleave", () => { S.peek = null; });
 
   addEventListener("keydown", (e) => {
+    // While the photo viewer is open it handles its own keys (Esc closes only the viewer).
+    if ($("lightbox").open) return;
     if (e.key === "Escape") { stopWander(); S.selected = null; renderPanel(); }
     // Left/right arrows flip through a species' photos, unless the user is typing.
     if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);
@@ -1180,8 +1186,37 @@ function photoHTML(s) {
     <button class="pnav prev" data-act="photo" data-step="-1" aria-label="Previous photo">‹</button>
     <button class="pnav next" data-act="photo" data-step="1" aria-label="Next photo">›</button>
     <span class="pcount">1 / ${list.length}</span>` : "";
-  return `<figure class="photo" data-i="0"><div class="pframe"><img src="${esc(list[0].src)}" alt="${esc(s.common)}">${nav}</div>
+  return `<figure class="photo" data-i="0"><div class="pframe"><img src="${esc(list[0].src)}" alt="${esc(s.common)}" data-act="zoom" title="View larger">${nav}</div>
     <figcaption>${creditHTML(list[0])}</figcaption></figure>`;
+}
+
+// Full-screen view of the card's current photo. Commons photos load at 1920 px; own photos at full size.
+const bigSrc = (ph) => (/^https?:/.test(ph.src) ? thumb(ph.src, 1920) : ph.src);
+
+function openLightbox() {
+  const fig = $("panel").querySelector(".photo");
+  const s = S.byCode[S.selected];
+  S.lb = { list: photosFor(s), i: fig ? +fig.dataset.i : 0, name: s.common };
+  renderLightbox();
+  $("lightbox").showModal();
+}
+function renderLightbox() {
+  const { list, i, name } = S.lb, ph = list[i];
+  const img = $("lbImg");
+  img.src = bigSrc(ph);
+  img.onerror = () => { img.onerror = null; img.src = ph.src; };
+  img.alt = name;
+  $("lbCap").innerHTML = `<b>${esc(name)}</b>${list.length > 1 ? ` · ${i + 1} / ${list.length}` : ""}<br>${creditHTML(ph)}`;
+  $("lightbox").classList.toggle("single", list.length < 2);
+}
+function stepLightbox(step) {
+  const n = S.lb.list.length;
+  if (n < 2) return;
+  S.lb.i = (S.lb.i + step + n) % n;
+  renderLightbox();
+  // Keep the card's carousel on the same photo, so closing lands where you were.
+  const fig = $("panel").querySelector(".photo");
+  if (fig) stepPhoto((S.lb.i - +fig.dataset.i + n) % n);
 }
 
 function stepPhoto(step) {
@@ -1278,6 +1313,11 @@ function runSearch(q, idx) {
 
 function bindSearch() {
   const input = $("q"), list = $("results");
+  // The full hint only fits on wide screens; elsewhere it would be cut off mid-word.
+  const roomy = matchMedia("(min-width: 1241px), (max-width: 800px)");
+  const setHint = () => { input.placeholder = roomy.matches ? "Search species or groups" : "Search"; };
+  setHint();
+  roomy.addEventListener("change", setHint);
   let idx = null, items = [], cur = -1;
   const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); cur = -1; };
   const render = () => {
@@ -1311,6 +1351,17 @@ function bindSearch() {
   input.addEventListener("focus", () => { if (items.length) render(); });
   // "/" jumps to search, as on many sites.
   addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement !== input) { e.preventDefault(); input.focus(); } });
+}
+
+function bindLightbox() {
+  const lb = $("lightbox");
+  $("lbClose").addEventListener("click", () => lb.close());
+  lb.querySelectorAll(".lb-nav").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); stepLightbox(+b.dataset.step); }));
+  // A click anywhere outside the photo itself closes the viewer.
+  lb.addEventListener("click", (e) => { if (e.target === lb || e.target.tagName === "FIGURE") lb.close(); });
+  lb.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); stepLightbox(e.key === "ArrowLeft" ? -1 : 1); }
+  });
 }
 
 function bindCredits() {
