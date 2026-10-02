@@ -1259,7 +1259,7 @@ function mediaHTML(ph, name) {
 function creditHTML(ph) {
   if (ph.ml) return `Photo from the <a href="${esc(ph.page)}" target="_blank" rel="noopener">Macaulay Library (ML${esc(ph.ml)})</a>; photographer credited in the photo`;
   const lic = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener">${esc(ph.license)}</a>` : esc(ph.license);
-  const src = ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : "";
+  const src = ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">${esc(ph.site || "Wikimedia Commons")}</a>` : "";
   return `Photo: ${esc(ph.artist)} · ${lic}${src}`;
 }
 
@@ -1281,7 +1281,7 @@ function photoHTML(s) {
 }
 
 // Full-screen view of the card's current photo. Commons photos load at 1920 px; own photos at full size.
-const bigSrc = (ph) => (/^https?:/.test(ph.src) ? thumb(ph.src, 1920) : ph.src);
+const bigSrc = (ph) => ph.big || (/^https?:/.test(ph.src) ? thumb(ph.src, 1920) : ph.src);
 
 function openLightbox() {
   const fig = $("panel").querySelector(".photo");
