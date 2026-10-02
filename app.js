@@ -297,22 +297,30 @@ function layoutFamily(active, R) {
   const showGenus = new Set(active.map((s) => s.genus)).size <= 30;
   const size = Math.min(R.w, R.h) - 40;
   d3.pack().size([size, size]).padding((d) => (d.height <= 1 ? 1.5 : d.height === 2 ? (showGenus ? 18 : 6) : d === top ? 34 : 22))(top);
-  const ox = R.cx - size / 2, oy = R.cy - size / 2 + 16;
+  // The packed circles fill only part of that square, so scale their actual extent to fill the stage,
+  // keeping a margin for the curved labels that sit just outside the outer circles.
+  const kids = top.children || [top];
+  const bx0 = d3.min(kids, (d) => d.x - d.r), bx1 = d3.max(kids, (d) => d.x + d.r);
+  const by0 = d3.min(kids, (d) => d.y - d.r), by1 = d3.max(kids, (d) => d.y + d.r);
+  const margin = 40;
+  const k = clamp(Math.min((R.w - 2 * margin) / (bx1 - bx0), (R.h - 2 * margin) / (by1 - by0)), 0.5, 2.5);
+  const X = (x) => R.cx + (x - (bx0 + bx1) / 2) * k;
+  const Y = (y) => R.cy + 10 + (y - (by0 + by1) / 2) * k;
 
   const targets = new Map();
   const leaves = [];
   top.leaves().forEach((l) => {
     if (!l.data.sp) return;
-    const t = { x: ox + l.x, y: oy + l.y, r: Math.min(l.r * 0.74, 40), a: 1 };
+    const t = { x: X(l.x), y: Y(l.y), r: Math.min(l.r * k * 0.74, 40), a: 1 };
     targets.set(l.data.sp.code, t);
     leaves.push(t);
   });
   const clusters = top.descendants().filter((d) => d !== top && d.children && d.data.level).map((d) => ({
-    x: ox + d.x, y: oy + d.y, r: d.r, level: d.data.level, value: d.data.value, count: d.leaves().length,
+    x: X(d.x), y: Y(d.y), r: d.r * k, level: d.data.level, value: d.data.value, count: d.leaves().length,
     color: SUB[d.leaves()[0].data.sp.subfamily].c[0],
-    parent: d.parent && d.parent !== top ? { x: ox + d.parent.x, y: oy + d.parent.y, r: d.parent.r } : null
+    parent: d.parent && d.parent !== top ? { x: X(d.parent.x), y: Y(d.parent.y), r: d.parent.r * k } : null
   }));
-  setLabelScale(clamp(size / 680, 0.62, 1));
+  setLabelScale(clamp((size * k) / 680, 0.62, 1));
   placeClusterLabels(clusters, leaves, R, showGenus);
   return { targets, deco: { kind: "family", clusters } };
 }
