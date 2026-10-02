@@ -213,6 +213,8 @@ button { font: inherit; color: inherit; }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; }
+.status { color: var(--st); font-weight: 500; }
+.status::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--st); margin-right: 7px; vertical-align: 1px; }
 .links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 0; }
 .ext { color: var(--accent); font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(127,224,196,0.4); }
 .ext:hover { border-bottom-color: var(--accent); }

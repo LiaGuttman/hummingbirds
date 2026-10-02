@@ -529,6 +529,9 @@ function layoutSize(active, R) {
   return { targets, deco: { kind: "size", x, axisY: Math.min(bottom + 28, R.y1 - 4), top, pins: pinList } };
 }
 
+// The same color a category has on the Status view's scale.
+function statusColor(code) { return (STATUS.find((g) => g.key === code || (g.also || []).includes(code)) || STATUS.at(-1)).c; }
+
 // One column per Red List category, birds stacked from the scale upward like a picture chart.
 // Least concern holds most species, so it gets a wider column; every bird is drawn the same size.
 function layoutStatus(active, R) {
@@ -1356,7 +1359,7 @@ function cardHTML(s) {
     ${s.bill ? `<dt>Bill</dt><dd>${s.bill} mm</dd>` : ""}
     ${s.habitat ? `<dt>Lives in</dt><dd>${esc(s.habitat)}</dd>` : ""}
     ${s.migration ? `<dt>Moves</dt><dd>${esc(MOVES[s.migration] || s.migration)}</dd>` : ""}
-    <dt>Status</dt><dd>${esc(IUCN[s.iucn] || s.iucn)}${s.trend && s.trend !== "Unknown" ? `, ${esc(s.trend.toLowerCase())}` : ""}</dd>
+    <dt>Status</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(s.trend.toLowerCase())}` : ""}</dd>
   </dl>
 
   <h3>Its place in the family</h3>
