@@ -1458,8 +1458,19 @@ function renderLightbox() {
   frame.hidden = !ph.ml;
   if (ph.ml) { frame.src = `${ph.page}/embed`; frame.title = `${name}, ${tx("photo from the Macaulay Library", "foto de la Macaulay Library")}`; }
   else frame.removeAttribute("src");
-  if (!ph.ml) img.src = bigSrc(ph);
-  img.onerror = () => { img.onerror = null; img.src = ph.src; };
+  if (!ph.ml) {
+    // Show the card's photo at once (it's already downloaded), at its full-screen size, and swap in the
+    // large version when it has arrived. Before, the previous photo stayed on screen while the large one loaded.
+    img.onerror = null;
+    img.src = ph.src;
+    img.style.width = ph.w && ph.h ? `min(100%, calc((100vh - 110px) * ${(ph.w / ph.h).toFixed(4)}))` : "";
+    const big = bigSrc(ph);
+    if (big !== ph.src) {
+      const pre = new Image();
+      pre.onload = () => { if (S.lb.list[S.lb.i] === ph) img.src = big; };
+      pre.src = big;
+    }
+  }
   img.alt = name;
   $("lbCap").innerHTML = `<b>${esc(name)}</b>${list.length > 1 ? ` · ${i + 1} / ${list.length}` : ""}<br>${creditHTML(ph)}`;
   $("lightbox").classList.toggle("single", list.length < 2);
