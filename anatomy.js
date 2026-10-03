@@ -1,4 +1,4 @@
-/* "Inside a hummingbird": a 3D Swallow-tailed Hummingbird with a dot on each body part.
+/* Anatomy page: a 3D Swallow-tailed Hummingbird with a dot on each body part.
    Tapping a dot opens a short card written for kids, with links into the collection.
    Texts were reviewed and approved by Lia (Oct 2026); every fact has a source listed under it.
    Model: "Swallow-tailed Hummingbird" by gelmi.com.br on Sketchfab, CC BY 4.0. */
