@@ -34,7 +34,8 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Fiery-throated Hummingbird.png"
+   "file": "Fiery-throated Hummingbird.png",
+   "big": "photos/fithum1-1-big.jpg"
   }
  ],
  "greher1": [
@@ -44,7 +45,8 @@
    "h": 1314,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Green Hermit.png"
+   "file": "Green Hermit.png",
+   "big": "photos/greher1-1-big.jpg"
   }
  ],
  "grcbri1": [
@@ -54,7 +56,8 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Green-crowned Brilliant.jpeg"
+   "file": "Green-crowned Brilliant.jpeg",
+   "big": "photos/grcbri1-1-big.jpg"
   }
  ],
  "lobher": [
@@ -64,7 +67,8 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Long-billed Hermit.jpeg"
+   "file": "Long-billed Hermit.jpeg",
+   "big": "photos/lobher-1-big.jpg"
   }
  ],
  "maghum1": [
@@ -74,7 +78,8 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Rivoli's Hummingbird.jpeg"
+   "file": "Rivoli's Hummingbird.jpeg",
+   "big": "photos/maghum1-1-big.jpg"
   }
  ],
  "whnjac1": [
@@ -94,7 +99,8 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "White-throated Mountain-gem.jpeg"
+   "file": "White-throated Mountain-gem.jpeg",
+   "big": "photos/wtmgem1-1-big.jpg"
   },
   {
    "src": "photos/wtmgem1-2.jpg",
@@ -112,7 +118,8 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Blue-chested Hummingbird.jpeg"
+   "file": "Blue-chested Hummingbird.jpeg",
+   "big": "photos/blchum1-1-big.jpg"
   }
  ],
  "gareme1": [
@@ -122,7 +129,8 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Garden Emerald .jpeg"
+   "file": "Garden Emerald .jpeg",
+   "big": "photos/gareme1-1-big.jpg"
   }
  ],
  "rthhum": [
@@ -132,7 +140,8 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Ruby-throated Hummingbird .jpeg"
+   "file": "Ruby-throated Hummingbird .jpeg",
+   "big": "photos/rthhum-1-big.jpg"
   }
  ],
  "rtlhum": [
@@ -148,11 +157,12 @@
  "viosab1": [
   {
    "src": "photos/viosab1-1.jpg",
-   "w": 667,
-   "h": 1000,
+   "w": 1600,
+   "h": 1433,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "Violet Sabrewing.png"
+   "file": "Violet Sabrewing.jpg",
+   "big": "photos/viosab1-1-big.jpg"
   }
  ]
 }
