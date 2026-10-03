@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-02o">
+<link rel="stylesheet" href="style.css?v=2026-10-02p">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -31,7 +31,10 @@
     <button role="tab" data-view="size">Size</button>
     <button role="tab" data-view="status">Status</button>
   </nav>
-  <div class="search">
+  <div class="search" id="search">
+    <button class="wander search-toggle" id="searchBtn" aria-label="Search species or groups" aria-expanded="false" aria-controls="q" title="Search (/)">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12.6 12.6l4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
     <input id="q" type="search" placeholder="Search species or groups" autocomplete="off" spellcheck="false"
            aria-label="Search species or groups" aria-controls="results" aria-expanded="false" role="combobox">
     <ul class="results" id="results" role="listbox" hidden></ul>
@@ -121,10 +124,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-02o"></script>
-<script src="traits.js?v=2026-10-02o"></script>
-<script src="app.js?v=2026-10-02o"></script>
-<script src="anatomy.js?v=2026-10-02o"></script>
-<script src="comet.js?v=2026-10-02o"></script>
+<script src="geo.js?v=2026-10-02p"></script>
+<script src="traits.js?v=2026-10-02p"></script>
+<script src="app.js?v=2026-10-02p"></script>
+<script src="anatomy.js?v=2026-10-02p"></script>
+<script src="comet.js?v=2026-10-02p"></script>
 </body>
 </html>

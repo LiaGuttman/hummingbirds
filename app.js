@@ -1421,7 +1421,12 @@ function bindSearch() {
   setHint();
   roomy.addEventListener("change", setHint);
   let idx = null, items = [], cur = -1;
+  const box = $("search"), btn = $("searchBtn");
   const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); cur = -1; };
+  // On wider screens the box is hidden behind a magnifier button until it's needed.
+  const openBox = () => { box.classList.add("open"); btn.setAttribute("aria-expanded", "true"); input.focus(); };
+  const shut = () => { box.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", openBox);
   const render = () => {
     if (!items.length) {
       list.innerHTML = input.value.trim() ? `<li class="none">No matches</li>` : "";
@@ -1437,7 +1442,7 @@ function bindSearch() {
   };
   const choose = (it) => {
     stopWander();
-    close(); input.value = ""; input.blur();
+    close(); input.value = ""; input.blur(); shut();
     if (it.kind === "species") select(it.s.code);
     else { pushFilter(taxonFilter(it.level, it.value)); if (S.view !== "family") setView("family"); }
   };
@@ -1446,13 +1451,13 @@ function bindSearch() {
     if (e.key === "ArrowDown" && items.length) { cur = (cur + 1) % items.length; render(); e.preventDefault(); }
     else if (e.key === "ArrowUp" && items.length) { cur = (cur - 1 + items.length) % items.length; render(); e.preventDefault(); }
     else if (e.key === "Enter" && cur >= 0) choose(items[cur]);
-    else if (e.key === "Escape") { close(); input.blur(); e.stopPropagation(); }
+    else if (e.key === "Escape") { close(); input.value = ""; input.blur(); shut(); e.stopPropagation(); }
   });
   list.addEventListener("pointerdown", (e) => { const li = e.target.closest("li[data-i]"); if (li) { e.preventDefault(); choose(items[+li.dataset.i]); } });
-  input.addEventListener("blur", () => setTimeout(close, 100));
+  input.addEventListener("blur", () => setTimeout(() => { close(); if (!input.value.trim()) shut(); }, 100));
   input.addEventListener("focus", () => { if (items.length) render(); });
   // "/" jumps to search, as on many sites.
-  addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement !== input) { e.preventDefault(); input.focus(); } });
+  addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement !== input) { e.preventDefault(); openBox(); } });
 }
 
 function bindLightbox() {
