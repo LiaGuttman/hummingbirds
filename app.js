@@ -61,6 +61,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const shortCountry = (c) => c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
 const massOf = (s) => s.mass || 4;
+// Address of a species' own page, as written by scripts/build_species_pages.py ("Sword-billed Hummingbird" → species/sword-billed-hummingbird/).
+const pageOf = (s) => `species/${s.common.normalize("NFKD").replace(/[^\x00-\x7f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}/`;
 // A Commons thumbnail at one of the standard widths Commons serves (250, 330, 500, 960).
 function thumb(src, w) {
   if (!/^https?:/.test(src)) return src;
@@ -122,7 +124,11 @@ Promise.all([
   bindSearch();
   bindCredits();
   bindLightbox();
+  // A link like hummingbirds.world/?species=swbhum1 (from a species page) opens that card.
+  // Read it first: drawing the panel resets the address to match what's open.
+  const linked = new URLSearchParams(location.search).get("species");
   setView("swarm", { first: true });
+  if (linked && S.byCode[linked]) select(linked);
   $("loading").classList.add("done");
   requestAnimationFrame(frame);
 });
@@ -1297,6 +1303,10 @@ function sharedHTML(level, value, list) {
 
 function renderPanel() {
   const p = $("panel");
+  // Keep the address bar pointing at the open card, so it can be shared.
+  const url = new URL(location.href);
+  if (S.selected) url.searchParams.set("species", S.selected); else url.searchParams.delete("species");
+  if (url.href !== location.href) history.replaceState(null, "", url);
   p.classList.toggle("open", !!S.selected);
   cardCanvas = null;
   if (S.selected) { p.innerHTML = cardHTML(S.byCode[S.selected]); cardCanvas = p.querySelector(".swatch canvas"); return; }
@@ -1313,7 +1323,7 @@ function renderPanel() {
   } else if (cf) {
     html += `<h2>${esc(cf.label)}</h2><p class="lede">${plural(active.length, "hummingbird species", "hummingbird species")}</p>`;
   } else {
-    html += `<h2>${active.length} hummingbirds</h2><p class="lede">Every hummingbird species belongs to one family, Trochilidae. Biologists sort the family into nested groups, from broad to narrow:</p>`;
+    html += `<h2>${active.length} hummingbirds</h2><p class="lede">Every hummingbird species belongs to one family, Trochilidae. Biologists sort the family into nested groups, from broad to narrow:</p><p class="lede"><a href="species/">List of all ${active.length} species</a>, each with its own page.</p>`;
   }
   if (cf) {
     const res = active.filter((s) => !isFaint(s.dist.find((d) => d.iso === cf.iso).st)).length;
@@ -1446,7 +1456,7 @@ function cardHTML(s) {
   <h2>${esc(s.common)}</h2>
   <div class="sci big">${esc(s.sci)}</div>
   <div class="es">${esc(s.es)}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}" target="_blank" rel="noopener">eBird page ↗</a></p>
+  <p class="links">${s.endemic ? `<span class="endemic">Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species</span>` : ""}<a class="ext" href="${pageOf(s)}">Species page</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}" target="_blank" rel="noopener">eBird page ↗</a></p>
 
   <h3>At a glance</h3>
   <dl class="facts">
