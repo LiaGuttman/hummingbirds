@@ -9,8 +9,8 @@ const NOTES = {
     Phaethornithinae: "Hermits are mostly dull green, brown and rufous rather than glittering. Many have long, down-curved bills and long central tail feathers. Most live in the shady forest understory. Instead of guarding a patch of flowers, they fly a regular route between flowers spread through the forest (trap-lining). Males gather in groups called leks, where each sings to attract females.",
     Polytminae: "A varied group that includes the mangoes, violetears, fairies, lancebills and caribs. A common feature is tiny serrations on the cutting edge of the bill; the Tooth-billed Hummingbird is the extreme example.",
     Lesbiinae: "Made up of two clades, the coquettes (tribe Lesbiini) and the brilliants (tribe Heliantheini). Most of its species live in the Andes.",
-    Patagoninae: "A single genus, Patagona: the giant hummingbirds, the largest of all hummingbirds. The eBird/Clements list this site follows counts one species, but a 2024 study showed there are two: one that migrates and one that stays in the Andes all year.",
-    Trochilinae: "Made up of three clades: the mountain gems, the bees and the emeralds. Every hummingbird that regularly breeds in the United States and Canada belongs here."
+    Patagoninae: "A single genus, Patagona: the giant hummingbirds, the largest of all hummingbirds. In 2024 scientists found it is really two species: the Southern Giant Hummingbird, which migrates, and the Northern Giant Hummingbird, which stays in the Andes all year. The eBird/Clements list this site follows still counts them as one.",
+    Trochilinae: "Made up of three clades: the mountain gems, the bees and the emeralds. Every hummingbird species that regularly breeds in the United States or Canada belongs to this subfamily."
   },
   tribe: {
     Lesbiini: "Males of many coquettes carry showy ornaments: crests, tufts, beards, or very long or wire-thin tails. Includes the coquettes, thorntails, sylphs, trainbearers, thornbills, metaltails and hillstars.",
