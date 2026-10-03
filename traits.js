@@ -1,15 +1,15 @@
 // What members of a group have in common, in plain words.
-// DRAFT: written by Claude from general ornithological knowledge, not checked against a source yet.
-// Every note needs checking (e.g. HBW Alive / Birds of the World) before a public release.
+// Reviewed by Lia (Oct 2026): subfamily and tribe notes are approved or corrected with sources;
+// the genus notes are still drafts written by Claude and need checking.
 // Groups without a note still get the facts the app computes from species.json.
 
 const NOTES = {
   subfamily: {
     Florisuginae: "The earliest branch to split from all other living hummingbirds. Two genera: the topazes (Topaza) and the jacobins (Florisuga).",
-    Phaethornithinae: "Hermits are mostly dull green, brown and rufous rather than glittering. Many have long, down-curved bills and long central tail feathers. Most live in the shady forest understory.",
-    Polytminae: "A varied group that includes the mangoes, violetears, fairies, lancebills and caribs.",
+    Phaethornithinae: "Hermits are mostly dull green, brown and rufous rather than glittering. Many have long, down-curved bills and long central tail feathers. Most live in the shady forest understory. Instead of guarding a patch of flowers, they fly a regular route between flowers spread through the forest (trap-lining). Males gather in groups called leks, where each sings to attract females.",
+    Polytminae: "A varied group that includes the mangoes, violetears, fairies, lancebills and caribs. A common feature is tiny serrations on the cutting edge of the bill; the Tooth-billed Hummingbird is the extreme example.",
     Lesbiinae: "Made up of two clades, the coquettes (tribe Lesbiini) and the brilliants (tribe Heliantheini). Most of its species live in the Andes.",
-    Patagoninae: "A single genus with one species in eBird/Clements: the Giant Hummingbird, the largest hummingbird.",
+    Patagoninae: "A single genus, Patagona: the giant hummingbirds, the largest of all hummingbirds. The eBird/Clements list this site follows counts one species, but a 2024 study showed there are two: one that migrates and one that stays in the Andes all year.",
     Trochilinae: "Made up of three clades: the mountain gems, the bees and the emeralds. Every hummingbird that regularly breeds in the United States and Canada belongs here."
   },
   tribe: {

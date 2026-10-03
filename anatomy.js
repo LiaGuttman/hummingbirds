@@ -98,6 +98,19 @@
       b.innerHTML = `<span>${i + 1}</span>`;
       mv.appendChild(b);
     });
+    // Our own loading screen: the site's logo bird hovering while the 3D file downloads (about 6 MB).
+    const bar = document.createElement("div"); bar.slot = "progress-bar"; mv.appendChild(bar);
+    const loader = document.createElement("div");
+    loader.className = "an-loading";
+    loader.innerHTML = `<svg viewBox="${document.querySelector(".brand .logo").getAttribute("viewBox")}" aria-hidden="true">${document.querySelector(".brand .logo").innerHTML}</svg>
+      <p>Warming up the wings… <b>0%</b></p><div class="an-loadbar"><i></i></div>`;
+    mv.addEventListener("progress", (e) => {
+      const pct = Math.round((e.detail.totalProgress || 0) * 100);
+      loader.querySelector("b").textContent = pct + "%";
+      loader.querySelector("i").style.width = pct + "%";
+    });
+    mv.addEventListener("load", () => loader.classList.add("done"));
+    stage.prepend(loader);
     stage.prepend(mv);
     dlg.addEventListener("click", onClick);
     dlg.addEventListener("close", () => { current = null; });
@@ -107,7 +120,8 @@
   function showIntro() {
     current = null;
     mark();
-    card.innerHTML = `<p class="an-lede">Turn the bird with your finger or mouse, and tap a dot to learn about that part.</p>
+    card.innerHTML = `<p class="an-model">The bird here is a <b>Swallow-tailed Hummingbird</b> (<i>Eupetomena macroura</i>) of South America, named for its long, forked tail. <button class="an-meet" data-meet="swthum1">Meet it in the collection</button></p>
+      <p class="an-lede">Turn the bird with your finger or mouse, and tap a dot to learn about that part.</p>
       <ol class="an-list">${PARTS.map((p, i) => `<li><button data-part="${p.id}"><span>${i + 1}</span>${esc(p.name)}</button></li>`).join("")}</ol>`;
   }
 
