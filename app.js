@@ -24,6 +24,7 @@ const TRIBE = { Lesbiini: "coquettes", Heliantheini: "brilliants", Lampornithini
 const RANK = { subfamily: "Subfamily", tribe: "Tribe", genus: "Genus" };
 const IUCN = { LC: "Least concern", NT: "Near threatened", VU: "Vulnerable", EN: "Endangered", CR: "Critically endangered", EX: "Extinct", DD: "Data deficient", NE: "Not evaluated" };
 const MOVES = { Sedentary: "Stays put all year", "Partial migrant": "Some populations migrate", Migratory: "Migrates" };
+const TOUCH = matchMedia("(hover: none)").matches;
 const HINTS = {
   swarm:  "Every species, colored by subfamily. Hover to meet one, click to open its card.",
   family: "Big circles are subfamilies, dashed circles are tribes, small circles are genera. Click a circle to step inside.",
@@ -141,7 +142,8 @@ function stageRect(view) {
   const x0 = mobile ? 16 : 28;
   const y0 = mobile ? 180 : 104;
   const x1 = W - (mobile ? 16 : panelWidth() + 16 + 28);
-  const y1 = H - (view === "world" ? (mobile ? 100 : 108) : 52);
+  const hintTop = $("hint").getBoundingClientRect().top;
+  const y1 = view === "world" ? H - (mobile ? 100 : 108) : mobile && hintTop > 0 ? hintTop - 10 : H - 52;
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
 
@@ -218,7 +220,7 @@ function countryFilterFor(iso) {
 function setView(v, opts = {}) {
   S.view = v;
   document.querySelectorAll(".views button").forEach((b) => b.setAttribute("aria-selected", b.dataset.view === v));
-  $("hint").textContent = HINTS[v];
+  $("hint").textContent = TOUCH ? HINTS[v].replace("Hover to meet one, click to open its card", "Tap one to open its card").replace(/\bClick\b/g, "Tap") : HINTS[v];
   relayout(opts);
   renderTrail(); renderPanel(); renderCountries();
 }
@@ -308,9 +310,12 @@ function layoutFamily(active, R) {
   // The packed circles fill only part of that square, so scale their actual extent to fill the stage,
   // keeping a margin for the curved labels that sit just outside the outer circles.
   const kids = top.children || [top];
+  const ext = (k, f) => f(kids, (d) => d[k] + (f === d3.min ? -d.r : d.r));
+  if ((ext("x", d3.max) - ext("x", d3.min) > ext("y", d3.max) - ext("y", d3.min)) !== (R.w > R.h))
+    top.each((d) => { [d.x, d.y] = [d.y, d.x]; });
   const bx0 = d3.min(kids, (d) => d.x - d.r), bx1 = d3.max(kids, (d) => d.x + d.r);
   const by0 = d3.min(kids, (d) => d.y - d.r), by1 = d3.max(kids, (d) => d.y + d.r);
-  const margin = 40;
+  const margin = W <= 800 ? 26 : 40;
   const k = clamp(Math.min((R.w - 2 * margin) / (bx1 - bx0), (R.h - 2 * margin) / (by1 - by0)), 0.5, 2.5);
   const X = (x) => R.cx + (x - (bx0 + bx1) / 2) * k;
   const Y = (y) => R.cy + 10 + (y - (by0 + by1) / 2) * k;
@@ -387,7 +392,7 @@ function stackLines(c) {
   ];
 }
 
-function placeClusterLabels(clusters, leaves, R, showGenus) {
+function placeClusterLabels(clusters, leaves, R, showGenus, first = []) {
   const offset = { subfamily: 13, tribe: 9, genus: 8 };
   // Tribes first: they have the least room, and a subfamily label can still move to the bottom.
   const order = { tribe: 0, subfamily: 1, genus: 2 };
@@ -396,13 +401,14 @@ function placeClusterLabels(clusters, leaves, R, showGenus) {
   const hits = (boxes) => boxes.some((b) => placed.some((p) => overlaps(b, p)));
   // An arc label is covered by a chain of small boxes along the curve, so it doesn't claim the circle's inside.
   const arcBoxes = (c, radius, span, bottom) => {
+    const half = Math.max(7, ({ subfamily: 18, tribe: 15, genus: 14 }[c.level] * LS) / 2 + 3);
     const n = Math.max(3, Math.ceil((span * radius) / 14)), out = [];
     const centre = bottom ? Math.PI / 2 : -Math.PI / 2;
     for (let i = 0; i < n; i++) {
       const b = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
       for (const t of [i / n, (i + 1) / n]) {
         const ang = centre - span / 2 + span * t;
-        for (const rr of [radius - 7, radius + 7]) {
+        for (const rr of [radius - half, radius + half]) {
           const x = c.x + Math.cos(ang) * rr, y = c.y + Math.sin(ang) * rr;
           b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y);
         }
@@ -412,9 +418,12 @@ function placeClusterLabels(clusters, leaves, R, showGenus) {
     return out;
   };
   // Within tribes the smallest circle chooses first, since it has the fewest spots that fit.
-  for (const c of [...clusters].sort((a, b) => order[a.level] - order[b.level] || (a.level === "tribe" ? a.r - b.r : b.r - a.r))) {
+  // Subfamilies left without a label on an earlier pass (\`first\`) choose before the other subfamilies.
+  const rank = (c) => order[c.level] - (first.includes(c) ? 0.5 : 0);
+  for (const c of [...clusters].sort((a, b) => rank(a) - rank(b) || (a.level === "tribe" ? a.r - b.r : b.r - a.r))) {
     if (c.level === "genus" && !showGenus) continue;
-    const maxSpan = Math.PI * (c.level === "subfamily" ? 1.2 : 0.9);
+    // On phones a tiny subfamily circle gets the stacked label: a name curled round it is hard to pin to it.
+    const maxSpan = c.level === "subfamily" && W <= 800 && c.r < 20 ? 0 : Math.PI * (c.level === "subfamily" ? (W <= 800 ? 0.95 : 1.2) : 0.9);
     // Prefer the full label along the top, then shorter ones, then the same along the bottom.
     tries: for (const bottom of [false, true]) {
       // Text along the bottom sits outside the circle too, so its baseline needs a little more room.
@@ -438,27 +447,44 @@ function placeClusterLabels(clusters, leaves, R, showGenus) {
     for (const l of lines) { ctx.font = l.f; ctx.letterSpacing = l.ls || "0px"; w = Math.max(w, ctx.measureText(l.t).width); }
     ctx.letterSpacing = "0px";
     const h = lines.reduce((a, l) => a + l.h, 0);
-    const spots = [[c.x, c.y - c.r - h / 2 - 6], [c.x - c.r - w / 2 - 10, c.y], [c.x + c.r + w / 2 + 10, c.y], [c.x, c.y + c.r + h / 2 + 6]];
+    // Straight above, beside or below first; the diagonals are fallbacks for crowded corners.
+    const dx = c.r * 0.7 + w / 2 + 6, dy = c.r * 0.7 + h / 2 + 4;
+    const spots = [[c.x, c.y - c.r - h / 2 - 6], [c.x - c.r - w / 2 - 10, c.y], [c.x + c.r + w / 2 + 10, c.y], [c.x, c.y + c.r + h / 2 + 6],
+                   [c.x - dx, c.y - dy], [c.x + dx, c.y - dy], [c.x - dx, c.y + dy], [c.x + dx, c.y + dy],
+                   [c.x, c.y - c.r - h / 2 - 34], [c.x, c.y + c.r + h / 2 + 34]];
     let best = null;
     spots.forEach(([x, y], i) => {
       const box = { x0: x - w / 2 - 3, x1: x + w / 2 + 3, y0: y - h / 2, y1: y + h / 2 };
-      let score = i;
-      if (hits([box])) score += 1000;
+      // A spot that hits another label, sits inside another subfamily or runs off screen is ruled out.
+      let score = i, ruledOut = hits([box]);
+      // Gap between the label and a circle's edge; the label must sit nearer its own circle than any other.
+      const gapTo = (o) => Math.hypot(clamp(o.x, box.x0, box.x1) - o.x, clamp(o.y, box.y0, box.y1) - o.y) - o.r;
+      const own = gapTo(c);
       for (const o of clusters) {
         if (o === c || o.level !== "subfamily") continue;
+        if (gapTo(o) < own) score += 300;
         const nx = clamp(o.x, box.x0, box.x1), ny = clamp(o.y, box.y0, box.y1);
-        if (Math.hypot(nx - o.x, ny - o.y) < o.r + 14) score += 200;
+        const d = Math.hypot(nx - o.x, ny - o.y);
+        if (d < o.r - 12) ruledOut = true;
+        else if (d < o.r + 14) score += 200;
       }
       for (const b of leaves) {
         const nx = clamp(b.x, box.x0, box.x1), ny = clamp(b.y, box.y0, box.y1);
         if (Math.hypot(nx - b.x, ny - b.y) < b.r + 1) score += 5;
       }
-      if (box.x0 < 4 || box.x1 > R.x1 + 20 || box.y0 < 60 || box.y1 > H - 8) score += 400;
-      if (!best || score < best.score) best = { score, x, y, box };
+      if (box.x0 < 4 || box.x1 > W - 4) ruledOut = true;
+      else if (box.x1 > R.x1 + 20 || box.y0 < 60 || box.y1 > H - 8) score += 400;
+      if (!ruledOut && (!best || score < best.score)) best = { score, x, y, box };
     });
-    if (best.score >= 1000) continue;
+    if (!best) continue;
     placed.push(best.box);
     c.lab = { mode: "stack", x: best.x, y: best.y - h / 2, lines, box: best.box };
+  }
+  // A crowded corner can leave a small subfamily unnamed; try once more with it choosing early.
+  const missing = clusters.filter((c) => c.level === "subfamily" && !c.lab);
+  if (missing.length && !first.length) {
+    clusters.forEach((c) => delete c.lab);
+    placeClusterLabels(clusters, leaves, R, showGenus, missing);
   }
 }
 
@@ -538,7 +564,7 @@ function layoutStatus(active, R) {
   const groups = STATUS.map((g) => ({ ...g, list: active.filter((s) => s.iucn === g.key || (g.also || []).includes(s.iucn)).sort((a, b) => a.seq - b.seq) }));
   const units = groups.map((g) => (g.key === "LC" ? 3 : 1));
   const gap = 18, unitW = (R.w - gap * (groups.length - 1)) / d3.sum(units);
-  const top = R.y0 + 30, axisY = R.y1 - (W <= 800 ? 84 : 46);
+  const top = R.y0 + 30, axisY = R.y1 - (W <= 800 ? 44 : 46);
   let x = R.x0;
   groups.forEach((g, i) => { g.x0 = x; g.w = units[i] * unitW; x += g.w + gap; });
   // Largest cell that lets every column fit between the top and the scale.
