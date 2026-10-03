@@ -1,6 +1,6 @@
 // What members of a group have in common, in plain words.
 // Reviewed by Lia (Oct 2026): subfamily and tribe notes are approved or corrected with sources;
-// the genus notes are still drafts written by Claude and need checking.
+// the genus notes were drafted by Claude and approved by Lia on Oct 3 2026. Spanish versions are in i18n.js.
 // Groups without a note still get the facts the app computes from species.json.
 
 const NOTES = {

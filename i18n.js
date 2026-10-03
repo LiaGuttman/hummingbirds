@@ -34,8 +34,7 @@ const ES_DATA = {
              "PR": "Puerto Rico", "PY": "Paraguay", "SR": "Surinam", "SV": "El Salvador", "SX": "Sint Maarten", "TC": "Islas Turcas y Caicos",
              "TT": "Trinidad y Tobago", "US": "Estados Unidos", "UY": "Uruguay", "VC": "San Vicente y las Granadinas", "VE": "Venezuela",
              "VG": "Islas Vírgenes Británicas", "VI": "Islas Vírgenes de EE. UU." },
-  // Subfamily and tribe notes, translated from the approved English notes in traits.js.
-  // Genus notes are still drafts under review in English, so the Spanish site doesn't show them yet.
+  // Group notes, translated from the English notes in traits.js that Lia approved (genus notes: Oct 3 2026).
   notes: {
     subfamily: {
       "Florisuginae": "La rama más antigua en separarse de todos los demás colibríes vivos. Dos géneros: los topacios (Topaza) y Florisuga.",
@@ -51,6 +50,53 @@ const ES_DATA = {
       "Lampornithini": "Colibríes bastante grandes, sobre todo de los bosques de montaña de México y Centroamérica.",
       "Mellisugini": "En su mayoría aves muy pequeñas. En muchas especies, los machos hacen sonidos con las plumas de la cola durante sus picadas de cortejo. Incluye al colibrí zunzuncito.",
       "Trochilini": "La tribu más grande. Aves en su mayoría verdes, muchas con azul o violeta brillante, que viven en tierras bajas y piedemontes."
+    },
+    genus: {
+      "Topaza": "Los machos tienen dos plumas centrales de la cola espectaculares, muy largas, que se cruzan entre sí.",
+      "Eutoxeres": "El pico se curva fuertemente hacia abajo, a la medida de las flores curvas de plantas como las Heliconia.",
+      "Ramphodon": "El pico tiene diminutas sierras a lo largo de sus bordes.",
+      "Phaethornis": "Picos largos y curvos, y plumas centrales de la cola largas, a menudo con la punta blanca. Los machos se reúnen en leks para cantar.",
+      "Doryfera": "Un pico largo, recto y muy delgado.",
+      "Augastes": "Los machos tienen una «visera» brillante sobre la cara. Las dos especies viven solo en las tierras altas del este de Brasil.",
+      "Colibri": "Un parche de plumas azul violeta detrás del ojo (la «oreja») que pueden desplegar en sus exhibiciones.",
+      "Heliactin": "Los machos tienen penachos de colores que sobresalen como cuernos.",
+      "Androdon": "Diminutas sierras, como dientes, cerca de la punta del pico.",
+      "Heliothryx": "Partes inferiores blancas y una cola larga.",
+      "Eulampis": "Los colibríes caribeños viven en las islas de las Antillas Menores y tienen el pico curvo hacia abajo.",
+      "Heliangelus": "La mayoría de los machos tiene una mancha brillante en la garganta (gorguera).",
+      "Sephanoides": "Los machos tienen una corona color fuego. Una especie vive solo en las islas Juan Fernández, frente a Chile.",
+      "Discosura": "Los machos tienen plumas de la cola delgadas y puntiagudas.",
+      "Lophornis": "Aves diminutas. Los machos tienen crestas y abanicos de plumas moteadas o con destellos en el cuello.",
+      "Aglaiocercus": "Los machos tienen colas muy largas e iridiscentes.",
+      "Oreotrochilus": "Viven en lo alto de los Andes, hasta el límite de las nieves, y pueden entrar en torpor en las noches frías.",
+      "Opisthoprora": "La punta del pico se curva un poco hacia arriba. A veces toma el néctar perforando la base de la flor en lugar de entrar por el frente.",
+      "Lesbia": "Colas larguísimas y muy ahorquilladas.",
+      "Ramphomicron": "Picos muy cortos.",
+      "Chalcostigma": "Picos cortos.",
+      "Oxypogon": "Los machos tienen una magnífica cresta puntiaguda y una barba larga. Viven en los pastizales del páramo alto de Colombia y Venezuela.",
+      "Metallura": "Colas con brillo de color metálico.",
+      "Haplophaedia": "«Pompones» esponjosos de plumas en las patas.",
+      "Eriocnemis": "«Pompones» esponjosos de plumas en las patas, a menudo blancos.",
+      "Loddigesia": "Las dos plumas exteriores de la cola del macho son alambres desnudos que se cruzan y terminan en grandes discos asombrosos (raquetas). Solo vive en el norte de Perú.",
+      "Aglaeactis": "Los machos tienen una mancha de color brillante en la espalda; en las hembras es más apagada o no existe.",
+      "Coeligena": "Picos largos y rectos.",
+      "Ensifera": "El pico es más largo que el resto del cuerpo: es la única ave en la que pasa esto.",
+      "Boissonneaua": "Suelen mantener las alas levantadas un momento después de posarse.",
+      "Ocreatus": "Las plumas exteriores de la cola de los machos terminan en raquetas, y las patas tienen plumas esponjosas («botas»).",
+      "Patagona": "El colibrí más grande, de unos 20 g.",
+      "Heliomaster": "Picos muy largos y rectos.",
+      "Lampornis": "Viven en bosques de montaña desde el suroeste de Estados Unidos hasta Panamá.",
+      "Chaetocercus": "Están entre las aves más pequeñas del mundo.",
+      "Selasphorus": "Incluye a algunos de los colibríes que migran más lejos, como el Zumbador Canelo.",
+      "Archilochus": "Dos especies, el Colibrí Garganta Rubí y el Colibrí Barba Negra, y las dos migran. Algunos colibríes garganta rubí cruzan el Golfo de México sin parar, unas 20 horas sobre el mar abierto.",
+      "Calypte": "Los machos tienen una corona brillante, y las plumas brillantes de su garganta se alargan en puntas a los lados.",
+      "Mellisuga": "Incluye al Colibrí Zunzuncito de Cuba, el ave más pequeña del mundo: un macho mide unos 5.5 cm y pesa alrededor de 2 g. (Con los pesos que usa este sitio, el Colibrí Cora resulta un poco más ligero.)",
+      "Doricha": "Los machos tienen la cola muy ahorquillada.",
+      "Thaumastura": "Los machos tienen la cola muy ahorquillada.",
+      "Campylopterus": "Los machos tienen el raquis de las plumas exteriores del ala engrosado y doblado.",
+      "Pampa": "Los machos tienen el raquis de las plumas exteriores del ala engrosado y doblado.",
+      "Trochilus": "Los machos tienen largas cintas en la cola. Solo vive en Jamaica.",
+      "Orthorhyncus": "Los machos tienen una cresta puntiaguda."
     }
   }
 };

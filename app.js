@@ -1332,7 +1332,6 @@ function sharedHTML(level, value, list) {
     if (ctry.length) items.push(`Live in ${plural(ctry.length, "country", "countries")}${list.length > 1 ? `; the most species are in ${esc(shortCountry(ctry[0][0]))} (${ctry[0][1]})` : ""}`);
     if (threatened) items.push(`${threatened} ${threatened === 1 ? "is" : "are"} threatened (Vulnerable or worse)`);
   }
-  // Spanish: the approved subfamily and tribe notes only; genus notes are still English drafts under review.
   const note = ES ? ES_DATA.notes[level]?.[value] : NOTES[level]?.[value];
   return `<h3>${tx("What they share", "Lo que tienen en común")}</h3>${note ? `<p class="note">${esc(note)}</p>` : ""}<ul class="shared">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
 }
@@ -1491,7 +1490,7 @@ function cardHTML(s) {
   const dist = [...s.dist].sort((a, b) => order(a) - order(b) || (b.n || 0) - (a.n || 0));
   const rel = relatives(s);
   const relTitle = rel.length && rel[0].genus === s.genus ? tx(`Others in the genus <i>${esc(s.genus)}</i>`, `Otros del género <i>${esc(s.genus)}</i>`) : tx(`Nearest relatives, in ${esc(groupName(s))}`, `Parientes más cercanos, en ${esc(groupName(s))}`);
-  const genusNote = ES ? null : NOTES.genus[s.genus];
+  const genusNote = (ES ? ES_DATA.notes.genus : NOTES.genus)[s.genus];
   const placeRow = (level, value, clade) =>
     `<button class="place" data-act="taxon" data-level="${level}" data-value="${esc(value)}" data-view="family"><span class="rank">${RANK[level]}</span><b class="sci">${esc(value)}</b>${clade ? `<em>${esc(clade)}</em>` : ""}</button>`;
 
@@ -1518,7 +1517,7 @@ function cardHTML(s) {
     ${s.tribe !== "—" ? placeRow("tribe", s.tribe, TRIBE[s.tribe]) : ""}
     ${placeRow("genus", s.genus, cladeOf("genus", s.genus))}
   </div>
-  ${genusNote ? `<p class="note"><b>What <i>${esc(s.genus)}</i> share:</b> ${esc(genusNote)}</p>` : ""}
+  ${genusNote ? `<p class="note"><b>${tx(`What <i>${esc(s.genus)}</i> share:`, `Lo que tienen en común los <i>${esc(s.genus)}</i>:`)}</b> ${esc(genusNote)}</p>` : ""}
 
   <h3>${tx("Where it lives", "Dónde vive")} · ${ES ? plural(s.dist.length, "país", "países") : plural(s.dist.length, "country", "countries")}</h3>
   <div class="chips">${dist.map((d) => `<button class="chip" data-act="country" data-iso="${d.iso}">${esc(shortCountry(d.c))}${order(d) ? ` <small>${esc(presenceName(d.st))}</small>` : ""}</button>`).join("")}</div>

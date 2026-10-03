@@ -97,6 +97,7 @@ h2 i { text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--fg
 .rel i { color: var(--muted); font-size: 0.95em; display: block; line-height: 1.2; }
 
 .sources { font-size: 13.5px; color: var(--muted); margin: 0; }
+.note { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); font-size: 15px; }
 
 /* Index of all species */
 .idx h2 { text-transform: none; letter-spacing: 0; font: 600 26px/1.2 var(--display); color: var(--fg); }
