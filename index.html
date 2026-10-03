@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-02n">
+<link rel="stylesheet" href="style.css?v=2026-10-02o">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -36,6 +36,10 @@
            aria-label="Search species or groups" aria-controls="results" aria-expanded="false" role="combobox">
     <ul class="results" id="results" role="listbox" hidden></ul>
   </div>
+  <button class="wander anatomy-btn" id="anatomyBtn" title="Inside a hummingbird: its body, part by part">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" fill="currentColor"/></svg>
+    <span>Anatomy</span>
+  </button>
   <button class="wander" id="wander" aria-pressed="false">
     <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15c3-8 6 2 9-5s5-4 5-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="6" r="1.8" fill="currentColor"/></svg>
     <span>Wander</span>
@@ -50,6 +54,23 @@
 <aside class="panel" id="panel" aria-live="polite"></aside>
 
 <button class="credits-link" id="creditsBtn">About &amp; credits</button>
+
+<dialog class="anatomy" id="anatomy" aria-labelledby="anatomy-title">
+  <div class="an-top">
+    <h2 id="anatomy-title">Inside a hummingbird</h2>
+    <div class="an-switch" role="group" aria-label="Outside or inside">
+      <button aria-pressed="true">Outside</button>
+      <button disabled title="The skeleton is coming soon">Inside <small>soon</small></button>
+    </div>
+    <button class="close an-close" data-close aria-label="Close">×</button>
+  </div>
+  <div class="an-body">
+    <div class="an-stage" id="anStage">
+      <p class="an-credit">3D model: <a href="https://sketchfab.com/3d-models/swallow-tailed-hummingbird-db761226ef2b41b5b6dbdae5a80e715b" target="_blank" rel="noopener">Swallow-tailed Hummingbird</a> by gelmi.com.br, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
+    </div>
+    <aside class="an-card" id="anCard" aria-live="polite"></aside>
+  </div>
+</dialog>
 
 <dialog class="credits" id="credits" aria-labelledby="credits-title">
   <button class="close" id="creditsClose" aria-label="Close">×</button>
@@ -83,6 +104,7 @@
 
   <h3>3D model</h3>
   <p>The Red-tailed Comet that sometimes flies past: <a href="https://sketchfab.com/3d-models/red-tailed-comet-idle-animation-d5a551f91f8345629f4ff8ab49ac07f4">Red Tailed Comet Idle Animation</a> by <a href="https://sketchfab.com/burak.dag.u9">burak.dag.u9</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Shown with Google's <a href="https://modelviewer.dev/">model-viewer</a> (Apache 2.0).</p>
+  <p>The bird on the Anatomy page: <a href="https://sketchfab.com/3d-models/swallow-tailed-hummingbird-db761226ef2b41b5b6dbdae5a80e715b">Swallow-tailed Hummingbird</a> by gelmi.com.br, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
   <h3>Built with</h3>
   <p><a href="https://d3js.org/">D3</a> and <a href="https://github.com/topojson/topojson">TopoJSON</a> (ISC license). Fonts: <a href="https://fonts.google.com/specimen/Newsreader">Newsreader</a> and <a href="https://fonts.google.com/specimen/IBM+Plex+Sans">IBM Plex Sans</a> (SIL Open Font License).</p>
 </dialog>
@@ -99,9 +121,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-02n"></script>
-<script src="traits.js?v=2026-10-02n"></script>
-<script src="app.js?v=2026-10-02n"></script>
-<script src="comet.js?v=2026-10-02n"></script>
+<script src="geo.js?v=2026-10-02o"></script>
+<script src="traits.js?v=2026-10-02o"></script>
+<script src="app.js?v=2026-10-02o"></script>
+<script src="anatomy.js?v=2026-10-02o"></script>
+<script src="comet.js?v=2026-10-02o"></script>
 </body>
 </html>

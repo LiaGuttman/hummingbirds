@@ -1032,8 +1032,8 @@ function bindPanels() {
   panel.addEventListener("pointerleave", () => { S.peek = null; });
 
   addEventListener("keydown", (e) => {
-    // While the photo viewer is open it handles its own keys (Esc closes only the viewer).
-    if ($("lightbox").open) return;
+    // While the photo viewer or another dialog is open it handles its own keys (Esc closes only that).
+    if (document.querySelector("dialog[open]")) return;
     if (e.key === "Escape") { stopWander(); S.selected = null; renderPanel(); }
     // Left/right arrows flip through a species' photos, unless the user is typing.
     if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);

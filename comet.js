@@ -22,9 +22,11 @@
   function load() {
     if (el) return Promise.resolve(el);
     return new Promise((resolve) => {
-      const s = document.createElement("script");
-      s.type = "module"; s.src = VIEWER;
-      document.head.appendChild(s);
+      if (!document.querySelector(`script[src="${VIEWER}"]`)) {
+        const s = document.createElement("script");
+        s.type = "module"; s.src = VIEWER;
+        document.head.appendChild(s);
+      }
       el = document.createElement("model-viewer");
       el.className = "comet";
       el.setAttribute("src", "models/comet.glb");
