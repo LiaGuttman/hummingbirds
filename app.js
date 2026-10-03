@@ -725,9 +725,17 @@ function drawCountryLabels() {
       ctx.fillStyle = hot ? "#fff" : "rgba(127,224,196,0.8)";
       ctx.beginPath(); ctx.arc(x, y, hot ? 4 : 2.5, 0, Math.PI * 2); ctx.fill();
     }
-    if (hot || (cf && cf.iso === iso)) {
+    const chosen = cf && cf.iso === iso;
+    if (hot || chosen) {
       const name = shortCountry(S.species.flatMap((s) => s.dist).find((d) => d.iso === iso).c);
-      pill(`${name} · ${counts[iso]} species`, x, cf && cf.iso === iso && !hot ? stageRect("world").y0 + 4 : y - 12);
+      // The chosen country's label sits just above its flock and stays put while the pointer moves,
+      // whether or not the pointer is over that country.
+      let ly = y - 12;
+      if (chosen) {
+        const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? s.g.sy - s.g.r : null));
+        ly = Math.max(stageRect("world").y0 + 4, Math.min(y, top ?? y) - 16);
+      }
+      pill(`${name} · ${counts[iso]} species`, x, ly);
     }
   }
   ctx.globalAlpha = 1;
