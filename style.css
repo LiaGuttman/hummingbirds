@@ -101,6 +101,8 @@ button { font: inherit; color: inherit; }
   width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow-y: auto;
   background: #0a1840; color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 26px 30px;
 }
+/* The close button stays at the top of the dialog while its text scrolls. */
+.credits .close { position: sticky; top: 0; float: right; margin: -14px -18px 0 8px; }
 .credits::backdrop { background: rgba(3, 8, 24, 0.6); backdrop-filter: blur(3px); }
 .credits h2 { font: 600 28px var(--display); margin: 0 0 10px; }
 .credits h3 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 8px; }

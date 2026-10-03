@@ -1165,7 +1165,14 @@ function bindPanels() {
     if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);
   });
   let rt;
-  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { resize(); relayout({ quick: true }); }, 120); });
+  // On phones the keyboard shrinks the window while the search box is in use. That's not a real resize:
+  // relaying out into the space above the keyboard squashed the chart, so height-only changes are ignored then.
+  let lastW = innerWidth;
+  addEventListener("resize", () => {
+    if (innerWidth === lastW && document.activeElement?.matches("input, textarea")) return;
+    lastW = innerWidth;
+    clearTimeout(rt); rt = setTimeout(() => { resize(); relayout({ quick: true }); }, 120);
+  });
 }
 
 function select(code) {

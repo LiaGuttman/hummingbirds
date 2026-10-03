@@ -38,7 +38,7 @@
       sources: [["Field Museum, 2020", "https://www.fieldmuseum.org/about/press/hummingbirds-rainbow-colors-come-pancake-shaped-structures-their-feathers"], ["Simpson and McGraw, 2018 (ASU)", "https://asu.elsevierpure.com/en/publications/two-ways-to-display-male-hummingbirds-show-different-color-displa"]]
     },
     {
-      id: "heart", name: "Heart", pos: "-42.60 82.57 94.12", normal: "-0.11 -0.01 0.99",
+      id: "heart", name: "Heart", pos: "-47.24 68.35 86.11", normal: "-0.25 -0.19 0.95",
       kids: "A hummingbird's heart is huge for its size: between 2 and 5% of its whole body weight. In people and other primates it's only about 0.5%. A big, fast heart gives the bird all the oxygen it needs. Even at rest it beats 500 to 600 times a minute.",
       wow: "The heart of a Blue-throated Mountain-gem was once measured beating 1,260 times a minute: 21 beats every second! But at night, or when it's too cold to find food, a hummingbird can go into a sleep-like state called torpor, and its heart slows to fewer than 50 beats a minute.",
       meet: [["buthum", "Blue-throated Mountain-gem, 1,260 beats a minute"]],
