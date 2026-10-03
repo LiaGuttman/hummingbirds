@@ -454,7 +454,8 @@ button { font: inherit; color: inherit; }
 .an-src a { color: var(--muted); }
 .an-back { border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; padding: 0; }
 .an-back:hover { color: var(--fg); }
-.an-steps { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 8px; color: var(--muted); font-size: 14px; }
+.an-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.an-steps { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
 .an-steps button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: var(--fg); font-size: 18px; cursor: pointer; }
 @media (max-width: 800px) {
   .anatomy { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; border: 0; }

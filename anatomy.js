@@ -118,13 +118,14 @@
     mark();
     const meet = (p.meet || []).map(([code, label]) => `<button class="an-meet" data-meet="${esc(code)}">${esc(label)}</button>`).join("");
     const src = p.sources.map(([t, u]) => (u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>` : esc(t))).join(" · ");
-    card.innerHTML = `<button class="an-back" data-back>‹ All parts</button>
+    // The part-to-part arrows sit in a fixed row at the top, so they don't move as card lengths change.
+    card.innerHTML = `<div class="an-nav"><button class="an-back" data-back>‹ All parts</button>
+      <div class="an-steps"><button data-step="-1" aria-label="Previous part">‹</button><span>${i + 1} / ${PARTS.length}</span><button data-step="1" aria-label="Next part">›</button></div></div>
       <h3><span>${i + 1}</span>${esc(p.name)}</h3>
       <p>${esc(p.kids)}</p>
       <div class="an-wow"><b>Wow!</b> ${esc(p.wow)}</div>
       ${p.see || meet ? `<p class="an-see">${esc(p.see || "See it in the collection:")}</p><div class="an-meets">${meet}</div>` : ""}
-      <p class="an-src">Sources: ${src}</p>
-      <div class="an-steps"><button data-step="-1" aria-label="Previous part">‹</button><span>${i + 1} / ${PARTS.length}</span><button data-step="1" aria-label="Next part">›</button></div>`;
+      <p class="an-src">Sources: ${src}</p>`;
     card.scrollTop = 0;
   }
 
