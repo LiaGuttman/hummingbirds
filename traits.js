@@ -20,7 +20,7 @@ const NOTES = {
     Trochilini: "The largest tribe. Mostly green birds, many with glittering blue or violet, living in lowlands and foothills."
   },
   genus: {
-    Topaza: "Males have two very long central tail feathers that cross over each other.",
+    Topaza: "Males have two spectacular, very long central tail feathers that cross over each other.",
     Eutoxeres: "The bill curves sharply downward, matching the curved flowers of plants such as Heliconia.",
     Ramphodon: "The bill has tiny saw-like serrations along its edges.",
     Phaethornis: "Long, curved bills and long central tail feathers, often white-tipped. Males gather in leks to sing.",
@@ -45,8 +45,8 @@ const NOTES = {
     Metallura: "Tails glossed with metallic color.",
     Haplophaedia: "Fluffy 'puffs' of feathers on the legs.",
     Eriocnemis: "Fluffy 'puffs' of feathers on the legs, often white.",
-    Loddigesia: "The male's two outer tail feathers end in large discs (rackets). Found only in northern Peru.",
-    Aglaeactis: "A patch of glittering color on the back.",
+    Loddigesia: "The male's two outer tail feathers are bare wires that cross each other and end in big, astonishing discs (rackets). Found only in northern Peru.",
+    Aglaeactis: "Males have a patch of glittering color on the back; in females it is duller or missing.",
     Coeligena: "Long, straight bills.",
     Ensifera: "The bill is longer than the rest of the body, the only bird for which this is true.",
     Boissonneaua: "Often hold their wings raised for a moment after landing.",
