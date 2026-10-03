@@ -151,7 +151,7 @@ function buildMap() {
   M.proj = d3.geoMercator().fitExtent([[R.x0, R.y0], [R.x1, R.y1]],
     { type: "MultiPoint", coordinates: [[-124, 47], [-36, -55]] });
   const gp = d3.geoPath(M.proj);
-  M.features.forEach((f) => { f.p2d = new Path2D(gp(f)); });
+  M.features.forEach((f) => { f.p2d = new Path2D(gp(f)); f.box = gp.bounds(f); });
   for (const [iso, [lat, lon]] of Object.entries(GEO)) {
     const [x, y] = M.proj([lon, lat]);
     let b = [[x - 6, y - 6], [x + 6, y + 6]];
@@ -576,8 +576,14 @@ function frame(now) {
 
   // Map zoom
   const mp = ease(clamp((now - M.tT0) / M.tDur, 0, 1));
-  const lk = Math.log(M.tFrom.k) + (Math.log(M.tTo.k) - Math.log(M.tFrom.k)) * mp;
-  M.t = { k: Math.exp(lk), x: M.tFrom.x + (M.tTo.x - M.tFrom.x) * mp, y: M.tFrom.y + (M.tTo.y - M.tFrom.y) * mp };
+  // Zoom along a smooth "fly-to" path (d3.interpolateZoom), so the place we're heading to stays in
+  // view the whole way. Animating position and scale separately let the view drift over empty ocean.
+  if (M.ziT0 !== M.tT0) {
+    const view = (v) => [(W / 2 - v.x) / v.k, (H / 2 - v.y) / v.k, W / v.k];
+    M.zi = d3.interpolateZoom(view(M.tFrom), view(M.tTo)); M.ziT0 = M.tT0;
+  }
+  const [zcx, zcy, zw] = M.zi(mp), zk = W / zw;
+  M.t = { k: zk, x: W / 2 - zcx * zk, y: H / 2 - zcy * zk };
   M.alpha += ((S.view === "world" ? 1 : 0) - M.alpha) * 0.06;
   S.wob += ((S.view === "swarm" ? 4 : 1.2) - S.wob) * 0.03;
 
@@ -699,7 +705,12 @@ function drawMap() {
   ctx.globalAlpha = M.alpha;
   ctx.setTransform(DPR * k, 0, 0, DPR * k, DPR * x, DPR * y);
   ctx.lineWidth = 0.7 / k;
+  // Only countries on screen are drawn. Zoomed in, off-screen countries become huge shapes that can
+  // make the browser drop the whole map for a frame.
+  const vx0 = -x / k, vy0 = -y / k, vx1 = (W - x) / k, vy1 = (H - y) / k;
   for (const f of M.features) {
+    const [[bx0, by0], [bx1, by1]] = f.box;
+    if (bx1 < vx0 || bx0 > vx1 || by1 < vy0 || by0 > vy1) continue;
     ctx.fillStyle = "#172c63";
     ctx.fill(f.p2d);
     const n = f.iso && counts[f.iso];
