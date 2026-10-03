@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-02r">
+<link rel="stylesheet" href="style.css?v=2026-10-02s">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -39,7 +39,7 @@
            aria-label="Search species or groups" aria-controls="results" aria-expanded="false" role="combobox">
     <ul class="results" id="results" role="listbox" hidden></ul>
   </div>
-  <button class="wander anatomy-btn" id="anatomyBtn" title="Inside a hummingbird: its body, part by part">
+  <button class="wander anatomy-btn" id="anatomyBtn" title="A hummingbird's body, part by part">
     <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" fill="currentColor"/></svg>
     <span>Anatomy</span>
   </button>
@@ -60,11 +60,7 @@
 
 <dialog class="anatomy" id="anatomy" aria-labelledby="anatomy-title">
   <div class="an-top">
-    <h2 id="anatomy-title">Inside a hummingbird</h2>
-    <div class="an-switch" role="group" aria-label="Outside or inside">
-      <button aria-pressed="true">Outside</button>
-      <button disabled title="The skeleton is coming soon">Inside <small>soon</small></button>
-    </div>
+    <h2 id="anatomy-title">Hummingbird anatomy</h2>
     <button class="close an-close" data-close aria-label="Close">×</button>
   </div>
   <div class="an-body">
@@ -124,10 +120,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-02r"></script>
-<script src="traits.js?v=2026-10-02r"></script>
-<script src="app.js?v=2026-10-02r"></script>
-<script src="anatomy.js?v=2026-10-02r"></script>
-<script src="comet.js?v=2026-10-02r"></script>
+<script src="geo.js?v=2026-10-02s"></script>
+<script src="traits.js?v=2026-10-02s"></script>
+<script src="app.js?v=2026-10-02s"></script>
+<script src="anatomy.js?v=2026-10-02s"></script>
+<script src="comet.js?v=2026-10-02s"></script>
 </body>
 </html>
