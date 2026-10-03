@@ -3,9 +3,20 @@
   {
    "src": "photos/lesvio1-1.jpg",
    "w": 1600,
-   "h": 1505,
+   "h": 1346,
    "artist": "Lia Guttman",
-   "license": "All rights reserved"
+   "license": "All rights reserved",
+   "file": "Lesser Violetear.jpg",
+   "big": "photos/lesvio1-1-big.jpg"
+  },
+  {
+   "src": "photos/lesvio1-2.jpg",
+   "w": 1261,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Lesser Violetear2.jpg",
+   "big": "photos/lesvio1-2-big.jpg"
   }
  ],
  "scihum1": [
@@ -96,11 +107,11 @@
  "wtmgem1": [
   {
    "src": "photos/wtmgem1-1.jpg",
-   "w": 1200,
+   "w": 1278,
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "White-throated Mountain-gem.jpeg",
+   "file": "White-throated Mountain-gem.jpg",
    "big": "photos/wtmgem1-1-big.jpg"
   },
   {
@@ -109,7 +120,7 @@
    "h": 1500,
    "artist": "Lia Guttman",
    "license": "All rights reserved",
-   "file": "white throated mountain gem.jpeg"
+   "file": "White-throated Mountain-gem2.jpg"
   }
  ],
  "blchum1": [
@@ -165,6 +176,45 @@
    "license": "All rights reserved",
    "file": "Violet Sabrewing.jpg",
    "big": "photos/viosab1-1-big.jpg"
+  }
+ ],
+ "brtplu1": [
+  {
+   "src": "photos/brtplu1-1.jpg",
+   "w": 1533,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Bronze-tailed Plumeleteer.jpg",
+   "big": "photos/brtplu1-1-big.jpg"
+  }
+ ],
+ "maghum2": [
+  {
+   "src": "photos/maghum2-1.jpg",
+   "w": 1360,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Talamanca Hummingbird.jpg",
+   "big": "photos/maghum2-1-big.jpg"
+  },
+  {
+   "src": "photos/maghum2-2.jpg",
+   "w": 1200,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Talamanca Hummingbird2.jpg",
+   "big": "photos/maghum2-2-big.jpg"
+  },
+  {
+   "src": "photos/maghum2-3.jpg",
+   "w": 1125,
+   "h": 1500,
+   "artist": "Lia Guttman",
+   "license": "All rights reserved",
+   "file": "Talamanca Hummingbird3.jpg"
   }
  ]
 }
