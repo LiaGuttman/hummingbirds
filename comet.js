@@ -38,7 +38,7 @@
       el.setAttribute("camera-orbit", "90deg 80deg auto");
       el.setAttribute("field-of-view", "24deg");
       el.setAttribute("exposure", "1.1");
-      el.title = "Red-tailed Comet: click to meet it";
+      el.title = document.documentElement.lang === "es" ? "Colibrí Cometa: haz clic para conocerlo" : "Red-tailed Comet: click to meet it";
       el.style.width = el.style.height = SIZE + "px";
       el.addEventListener("pointerenter", () => { held = true; });
       el.addEventListener("pointerleave", () => { held = false; });

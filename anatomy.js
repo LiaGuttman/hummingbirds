@@ -67,6 +67,50 @@
     }
   ];
 
+  // Spanish (Mexico) texts, translated from the approved English ones above; links use eBird Mexico names.
+  const PARTS_ES = {
+    bill: { name: "Pico",
+      kids: "El pico del colibrí es largo y delgado, como un popote, para llegar hasta el fondo de las flores. Cada tipo de colibrí tiene un pico que se adapta a las flores que más le gustan.",
+      wow: "El pico del Colibrí Picoespada es más largo que todo su cuerpo, sin contar la cola. Ninguna otra ave del mundo tiene algo así.",
+      see: "Los picos van de 11 mm a 97 mm. Conoce al más corto y al más largo:",
+      meet: ["Colibrí Piquicorto Común, 11 mm", "Colibrí Picoespada, 97 mm"] },
+    tongue: { name: "Lengua",
+      kids: "La lengua se esconde dentro del pico. Su punta se divide en dos, como la lengua de una serpiente. Cuando toca el néctar, unos flecos diminutos se abren, atrapan el néctar y lo llevan a la boca.",
+      wow: "Los científicos pensaban que la lengua chupaba el néctar como un popote. Videos de alta velocidad de 30 tipos de colibríes mostraron que en realidad funciona como una pequeña trampa." },
+    eye: { name: "Ojo",
+      kids: "Los colibríes ven colores que ni siquiera podemos imaginar. Pueden ver la luz ultravioleta, y mezclas como ultravioleta con verde. Eso les ayuda a encontrar flores.",
+      wow: "Los científicos lo comprobaron con zumbadores cola ancha silvestres en Colorado, usando luces especiales y bebederos con agua azucarada.",
+      meet: ["Zumbador Cola Ancha"] },
+    gorget: { name: "Gorguera (garganta)",
+      kids: "Muchos machos tienen plumas brillantes en la garganta, llamadas gorguera. Ese color no es pintura. Viene de unas formas diminutas, planas y con burbujitas dentro de las plumas, que rebotan la luz como una burbuja de jabón. Los machos la usan para impresionar a las hembras: hacen un pequeño baile en el aire frente a ella, y la gorguera destella cuando le da la luz del sol.",
+      wow: "Por eso la garganta puede verse negra en un momento y roja o morada brillante al siguiente, cuando el ave gira la cabeza.",
+      meet: ["Colibrí Garganta Rubí", "Colibrí Cabeza Roja"] },
+    feathers: { name: "Plumas",
+      kids: "Las plumas mantienen caliente al colibrí, le ayudan a volar y le dan sus colores. Los verdes, azules y rojos brillantes no vienen de ningún pigmento: unas formas diminutas en las plumas rebotan la luz de una manera especial. A esto se le llama color estructural, y cuando el color cambia al moverte se llama iridiscencia.",
+      wow: "Un Colibrí Garganta Rubí tiene solo unas 940 plumas, y mantiene cada una limpia y ordenada para volar.",
+      meet: ["Colibrí Garganta Rubí"] },
+    wings: { name: "Alas",
+      kids: "Los colibríes pueden detenerse en el aire, volar hacia atrás y hasta de cabeza por un momento. Sus alas se mueven dibujando un ocho acostado, y giran en el hombro para empujar el aire tanto al ir hacia adelante como al regresar. Ser tan rápidos y girar tan fácil también les ayuda a escapar del peligro: cuando algo los asusta, se alejan girando en una fracción de segundo.",
+      wow: "El colibrí más grande bate sus alas unas 12 veces por segundo. Los pequeños las baten tan rápido que solo ves algo borroso, pero puedes oírlas: las alas hacen un zumbido. ¡Por eso en inglés se llaman hummingbird, que quiere decir «pájaro que zumba»!",
+      meet: ["Colibrí Gigante, el que aletea despacio (20 g)"] },
+    tail: { name: "Cola",
+      kids: "La cola le ayuda a dar vuelta y a frenar, como un timón. Algunos colibríes tienen colas con largas cintas o con puntas en forma de cuchara.",
+      wow: "El macho del Colibrí Cabeza Roja «canta» con la cola. Se lanza en picada a unos 80 km/h, abre las plumas de la cola y estas vibran con el viento y hacen un chirrido fuerte.",
+      meet: ["Colibrí Cabeza Roja", "Colibrí Admirable (cola con puntas de cuchara)", "Colibrí Golondrina (esta ave en 3D)"] },
+    feet: { name: "Patas",
+      kids: "Los colibríes tienen patas diminutas. No pueden caminar ni saltar. Usan las patas para sujetarse de una rama, y se recorren de lado a pasitos.",
+      wow: "El nombre de su grupo de aves, Apodiformes, viene del griego y significa «sin patas». Sí tienen patas, solo que muy pequeñas.",
+      see: "Unos muy divertidos para tocar: los de raquetas y los calzaditos, que llevan «pompones» esponjosos de plumas en las patas.",
+      meet: ["Colibrí de Raquetas Faldiblanco", "Los calzaditos"] }
+  };
+  if (document.documentElement.lang === "es") PARTS.forEach((p) => {
+    const t = PARTS_ES[p.id];
+    Object.assign(p, { name: t.name, kids: t.kids, wow: t.wow, see: t.see });
+    if (p.meet) p.meet = p.meet.map(([code, label], i) => [code, t.meet?.[i] || label]);
+    p.sources = p.sources.map(([title, url]) => [title === "Our species data (bill lengths)" ? "Nuestros datos de especies (largo del pico)" : title, url]);
+  });
+  const L = (en, es) => (document.documentElement.lang === "es" ? es : en);
+
   const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   let dlg, mv, card, current = null;
 
@@ -85,7 +129,7 @@
     mv = document.createElement("model-viewer");
     mv.id = "anModel";
     Object.entries({
-      src: MODEL, alt: "A 3D Swallow-tailed Hummingbird you can turn around", "camera-controls": "",
+      src: MODEL, alt: L("A 3D Swallow-tailed Hummingbird you can turn around", "Un Colibrí Golondrina en 3D que puedes girar"), "camera-controls": "",
       "touch-action": "pan-y", "camera-orbit": "0deg 85deg auto", "interaction-prompt": "none",
       "shadow-intensity": "0.6", exposure: "1.1", loading: "eager", "min-camera-orbit": "auto auto 50%"
     }).forEach(([k, v]) => mv.setAttribute(k, v));
@@ -103,7 +147,7 @@
     const loader = document.createElement("div");
     loader.className = "an-loading";
     loader.innerHTML = `<svg viewBox="${document.querySelector(".brand .logo").getAttribute("viewBox")}" aria-hidden="true">${document.querySelector(".brand .logo").innerHTML}</svg>
-      <p>Warming up the wings… <b>0%</b></p><div class="an-loadbar"><i></i></div>`;
+      <p>${L("Warming up the wings…", "Calentando las alas…")} <b>0%</b></p><div class="an-loadbar"><i></i></div>`;
     mv.addEventListener("progress", (e) => {
       const pct = Math.round((e.detail.totalProgress || 0) * 100);
       loader.querySelector("b").textContent = pct + "%";
@@ -120,8 +164,10 @@
   function showIntro() {
     current = null;
     mark();
-    card.innerHTML = `<p class="an-model">The bird here is a <b>Swallow-tailed Hummingbird</b> (<i>Eupetomena macroura</i>) of South America, named for its long, forked tail. <button class="an-meet" data-meet="swthum1">Meet it in the collection</button></p>
-      <p class="an-lede">Turn the bird with your finger or mouse, and tap a dot to learn about that part.</p>
+    card.innerHTML = L(`<p class="an-model">The bird here is a <b>Swallow-tailed Hummingbird</b> (<i>Eupetomena macroura</i>) of South America, named for its long, forked tail. <button class="an-meet" data-meet="swthum1">Meet it in the collection</button></p>
+      <p class="an-lede">Turn the bird with your finger or mouse, and tap a dot to learn about that part.</p>`,
+      `<p class="an-model">El ave que ves aquí es un <b>Colibrí Golondrina</b> (<i>Eupetomena macroura</i>) de Sudamérica, llamado así por su cola larga y en forma de tijera. <button class="an-meet" data-meet="swthum1">Conócelo en la colección</button></p>
+      <p class="an-lede">Gira el ave con tu dedo o con el mouse, y toca un punto para conocer esa parte.</p>`) + `
       <ol class="an-list">${PARTS.map((p, i) => `<li><button data-part="${p.id}"><span>${i + 1}</span>${esc(p.name)}</button></li>`).join("")}</ol>`;
   }
 
@@ -133,13 +179,13 @@
     const meet = (p.meet || []).map(([code, label]) => `<button class="an-meet" data-meet="${esc(code)}">${esc(label)}</button>`).join("");
     const src = p.sources.map(([t, u]) => (u ? `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>` : esc(t))).join(" · ");
     // The part-to-part arrows sit in a fixed row at the top, so they don't move as card lengths change.
-    card.innerHTML = `<div class="an-nav"><button class="an-back" data-back>‹ All parts</button>
-      <div class="an-steps"><button data-step="-1" aria-label="Previous part">‹</button><span>${i + 1} / ${PARTS.length}</span><button data-step="1" aria-label="Next part">›</button></div></div>
+    card.innerHTML = `<div class="an-nav"><button class="an-back" data-back>‹ ${L("All parts", "Todas las partes")}</button>
+      <div class="an-steps"><button data-step="-1" aria-label="${L("Previous part", "Parte anterior")}">‹</button><span>${i + 1} / ${PARTS.length}</span><button data-step="1" aria-label="${L("Next part", "Parte siguiente")}">›</button></div></div>
       <h3><span>${i + 1}</span>${esc(p.name)}</h3>
       <p>${esc(p.kids)}</p>
-      <div class="an-wow"><b>Wow!</b> ${esc(p.wow)}</div>
-      ${p.see || meet ? `<p class="an-see">${esc(p.see || "See it in the collection:")}</p><div class="an-meets">${meet}</div>` : ""}
-      <p class="an-src">Sources: ${src}</p>`;
+      <div class="an-wow"><b>${L("Wow!", "¡Increíble!")}</b> ${esc(p.wow)}</div>
+      ${p.see || meet ? `<p class="an-see">${esc(p.see || L("See it in the collection:", "Míralo en la colección:"))}</p><div class="an-meets">${meet}</div>` : ""}
+      <p class="an-src">${L("Sources", "Fuentes")}: ${src}</p>`;
     card.scrollTop = 0;
   }
 

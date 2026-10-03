@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hummingbirds World: all 363 hummingbird species</title>
 <link rel="canonical" href="https://hummingbirds.world/">
+<link rel="alternate" hreflang="en" href="https://hummingbirds.world/">
+<link rel="alternate" hreflang="es" href="https://hummingbirds.world/es/">
+<link rel="alternate" hreflang="x-default" href="https://hummingbirds.world/">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Hummingbirds World", "url": "https://hummingbirds.world/", "description": "An interactive explorer of all 363 hummingbird species: by family tree, on the world map, by size and by conservation status.", "creator": {"@type": "Person", "name": "Lia Guttman"}, "inLanguage": "en"}</script>
 <meta name="description" content="Explore all 363 hummingbird species: by family tree, on the world map, by size and by conservation status, with photos and a 3D anatomy page.">
 <meta property="og:type" content="website">
@@ -23,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-03h">
+<link rel="stylesheet" href="style.css?v=2026-10-03i">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -60,6 +63,8 @@
     <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15c3-8 6 2 9-5s5-4 5-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="6" r="1.8" fill="currentColor"/></svg>
     <span>Wander</span>
   </button>
+  <!-- Switches to the same view in the other language; app.js keeps it pointing at the open card. -->
+  <a class="wander lang" id="langBtn" href="es/" hreflang="es" lang="es" title="Ver en español">ES</a>
 </header>
 
 <ol class="trail" id="trail" aria-label="Where you are"></ol>
@@ -136,11 +141,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-03h"></script>
-<script src="traits.js?v=2026-10-03h"></script>
-<script src="app.js?v=2026-10-03h"></script>
-<script src="anatomy.js?v=2026-10-03h"></script>
-<script src="comet.js?v=2026-10-03h"></script>
+<script src="geo.js?v=2026-10-03i"></script>
+<script src="traits.js?v=2026-10-03i"></script>
+<script src="i18n.js?v=2026-10-03i"></script>
+<script src="app.js?v=2026-10-03i"></script>
+<script src="anatomy.js?v=2026-10-03i"></script>
+<script src="comet.js?v=2026-10-03i"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

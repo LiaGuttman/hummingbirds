@@ -20,12 +20,19 @@ const SUB = {
   Patagoninae:      { clade: "Patagona",                         c: ["#c3d0de", "#f0cf9c"] },
   Trochilinae:      { clade: "mountain gems, bees and emeralds", c: ["#ff5fbf", "#9cc0ff"] }
 };
-const TRIBE = { Lesbiini: "coquettes", Heliantheini: "brilliants", Lampornithini: "mountain gems", Mellisugini: "bees", Trochilini: "emeralds" };
-const RANK = { subfamily: "Subfamily", tribe: "Tribe", genus: "Genus" };
-const IUCN = { LC: "Least concern", NT: "Near threatened", VU: "Vulnerable", EN: "Endangered", CR: "Critically endangered", EX: "Extinct", DD: "Data deficient", NE: "Not evaluated" };
-const MOVES = { Sedentary: "Stays put all year", "Partial migrant": "Some populations migrate", Migratory: "Migrates" };
+const TRIBE = ES ? ES_DATA.tribe : { Lesbiini: "coquettes", Heliantheini: "brilliants", Lampornithini: "mountain gems", Mellisugini: "bees", Trochilini: "emeralds" };
+if (ES) for (const k in SUB) SUB[k].clade = ES_DATA.clade[k];
+const RANK = ES ? { subfamily: "Subfamilia", tribe: "Tribu", genus: "Género" } : { subfamily: "Subfamily", tribe: "Tribe", genus: "Genus" };
+const IUCN = ES ? ES_DATA.iucn : { LC: "Least concern", NT: "Near threatened", VU: "Vulnerable", EN: "Endangered", CR: "Critically endangered", EX: "Extinct", DD: "Data deficient", NE: "Not evaluated" };
+const MOVES = ES ? ES_DATA.moves : { Sedentary: "Stays put all year", "Partial migrant": "Some populations migrate", Migratory: "Migrates" };
 const TOUCH = matchMedia("(hover: none)").matches;
-const HINTS = {
+const HINTS = ES ? {
+  swarm:  "Todas las especies, con colores por subfamilia. Pasa el cursor sobre una para conocerla y haz clic para abrir su ficha.",
+  family: "Los círculos grandes son subfamilias, los punteados son tribus y los pequeños son géneros. Haz clic en un círculo para entrar.",
+  world:  "Cada ave está cerca del centro de su área de distribución. Haz clic en un país para ver quién vive ahí.",
+  size:   "Del más ligero al más pesado, en escala logarítmica. Un clip pesa alrededor de 1 g.",
+  status: "Qué tan a salvo está cada especie, según la Lista Roja de la UICN: preocupación menor a la izquierda, extinto a la derecha."
+} : {
   swarm:  "Every species, colored by subfamily. Hover to meet one, click to open its card.",
   family: "Big circles are subfamilies, dashed circles are tribes, small circles are genera. Click a circle to step inside.",
   world:  "Each bird sits near the heart of its range. Click a country to see who lives there.",
@@ -36,12 +43,12 @@ const HINTS = {
 const STATUS = [
   { key: "LC", c: "#60c659" }, { key: "NT", c: "#cce226" }, { key: "VU", c: "#f9e814" },
   { key: "EN", c: "#fc7f3f" }, { key: "CR", c: "#ff4a2e" }, { key: "EX", c: "#8a93a8" },
-  { key: "DD", c: "#c9cfdc", label: "Not enough data", also: ["NE"] }
+  { key: "DD", c: "#c9cfdc", label: tx("Not enough data", "Sin datos suficientes"), also: ["NE"] }
 ];
 
 const S = {
   species: [], byCode: {}, view: "swarm",
-  trail: [{ type: "all", label: "All hummingbirds" }],
+  trail: [{ type: "all", label: tx("All hummingbirds", "Todos los colibríes") }],
   active: new Set(), selected: null, hover: null, peek: null, hoverCluster: null, hoverCountry: null,
   deco: null, decoT0: 0, wob: 4,
   // The flock's own clock runs slower when the pointer is near, so birds are easier to catch.
@@ -59,10 +66,21 @@ const $ = (id) => document.getElementById(id);
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const shortCountry = (c) => c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
+// Countries are stored by English name; the Spanish site shows the Spanish name for the same ISO code.
+let isoByName = null;
+const shortCountry = (c) => {
+  if (ES) {
+    isoByName ||= Object.fromEntries(S.species.flatMap((s) => s.dist.map((d) => [d.c, d.iso])));
+    const es = ES_DATA.country[isoByName[c]];
+    if (es) return es;
+  }
+  return c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
+};
 const massOf = (s) => s.mass || 4;
 // Address of a species' own page, as written by scripts/build_species_pages.py ("Sword-billed Hummingbird" → species/sword-billed-hummingbird/).
-const pageOf = (s) => `species/${s.common.normalize("NFKD").replace(/[^\x00-\x7f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}/`;
+// The Spanish pages live under es/especies/, named after the Spanish name ("Colibrí Picoespada" → colibri-picoespada).
+const slugOf = (t) => t.normalize("NFKD").replace(/[^\x00-\x7f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const pageOf = (s) => (ES ? `es/especies/${slugOf(s.es)}/` : `species/${slugOf(s.common)}/`);
 // A Commons thumbnail at one of the standard widths Commons serves (250, 330, 500, 960).
 function thumb(src, w) {
   if (!/^https?:/.test(src)) return src;
@@ -78,7 +96,12 @@ function cladeOf(level, value) {
   return calledNames(S.species.filter((s) => s.genus === value)).join(", ");
 }
 // Plural English names used for a genus, read from the species' own eBird names ("Violetear" → "violetears").
+// In Spanish the group word comes first ("Ermitaño Bronceado" → "ermitaños"); the generic "Colibrí" is skipped.
 function calledNames(list) {
+  if (ES) {
+    const words = [...new Set(list.map((s) => s.es.split(" ")[0]))].filter((w) => w !== "Colibrí");
+    return words.map((w) => (w = w.toLowerCase(), /z$/.test(w) ? w.slice(0, -1) + "ces" : /[aeiou]$/.test(w) ? w + "s" : w + "es"));
+  }
   const words = [...new Set(list.map((s) => s.common.split(" ").pop()))].filter((w) => w !== "Hummingbird");
   return words.map((w) => {
     w = w.toLowerCase();
@@ -226,7 +249,9 @@ function countryFilterFor(iso) {
 function setView(v, opts = {}) {
   S.view = v;
   document.querySelectorAll(".views button").forEach((b) => b.setAttribute("aria-selected", b.dataset.view === v));
-  $("hint").textContent = TOUCH ? HINTS[v].replace("Hover to meet one, click to open its card", "Tap one to open its card").replace(/\bClick\b/g, "Tap") : HINTS[v];
+  $("hint").textContent = !TOUCH ? HINTS[v] : ES
+    ? HINTS[v].replace("Pasa el cursor sobre una para conocerla y haz clic para abrir su ficha", "Toca una para abrir su ficha").replace(/Haz clic en/g, "Toca")
+    : HINTS[v].replace("Hover to meet one, click to open its card", "Tap one to open its card").replace(/\bClick\b/g, "Tap");
   relayout(opts);
   renderTrail(); renderPanel(); renderCountries();
 }
@@ -234,7 +259,7 @@ function setView(v, opts = {}) {
 function relayout(opts = {}) {
   const active = S.species.filter((s) => S.trail.every((f) => matches(s, f)));
   S.active = new Set(active.map((s) => s.code));
-  $("count").textContent = active.length === S.species.length ? `${active.length} species` : `${active.length} of ${S.species.length} species`;
+  $("count").textContent = active.length === S.species.length ? tx(`${active.length} species`, `${active.length} especies`) : tx(`${active.length} of ${S.species.length} species`, `${active.length} de ${S.species.length} especies`);
 
   const R = stageRect(S.view);
   let out;
@@ -799,7 +824,7 @@ function drawCountryLabels() {
         const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? s.g.sy - s.g.r : null));
         ly = Math.max(stageRect("world").y0 + 4, Math.min(y, top ?? y) - 16);
       }
-      pill(`${name} · ${counts[iso]} species`, x, ly);
+      pill(`${name} · ${counts[iso]} ${tx("species", "especies")}`, x, ly);
     }
   }
   ctx.globalAlpha = 1;
@@ -916,7 +941,7 @@ function drawSizeAxis(a) {
     const ly = d.top - 26 - (i % 3) * 26;
     ctx.globalAlpha = a * 0.4; ctx.strokeStyle = "#fff";
     ctx.beginPath(); ctx.moveTo(g.sx, g.sy - g.r - 2); ctx.lineTo(g.sx, ly + 11); ctx.stroke();
-    pill(`${s.common} · ${s.mass} g`, g.sx, ly, { alpha: a });
+    pill(`${nameOf(s)} · ${s.mass} g`, g.sx, ly, { alpha: a });
   });
   ctx.globalAlpha = 1;
 }
@@ -940,7 +965,7 @@ function drawSizeAxisTall(a) {
     .map((s) => { const ly = Math.min(s.g.sy, prev === -Infinity ? s.g.sy : prev - 26); prev = ly; return { s, ly }; });
   ctx.font = "500 13px 'IBM Plex Sans', sans-serif";
   for (const { s, ly } of rows) {
-    const text = `${s.common} · ${s.mass} g`, w = ctx.measureText(text).width;
+    const text = `${nameOf(s)} · ${s.mass} g`, w = ctx.measureText(text).width;
     const lx = W - 10 - w / 2 - 7;
     ctx.globalAlpha = a * 0.4; ctx.strokeStyle = "#fff";
     ctx.beginPath(); ctx.moveTo(s.g.sx + s.g.r + 2, s.g.sy); ctx.lineTo(lx - w / 2 - 7, ly); ctx.stroke();
@@ -973,7 +998,7 @@ function drawStatusScale(a) {
     // The count sits on top of each column.
     ctx.globalAlpha = a * 0.85; ctx.fillStyle = "#d4def5";
     ctx.font = "500 13px 'IBM Plex Sans', sans-serif"; ctx.textBaseline = "bottom";
-    ctx.fillText(g.list.length ? `${g.list.length}` : "none", cx, g.topY - 4);
+    ctx.fillText(g.list.length ? `${g.list.length}` : tx("none", "ninguna"), cx, g.topY - 4);
     ctx.textBaseline = "top";
   }
   ctx.globalAlpha = 1;
@@ -1098,11 +1123,11 @@ function hoverAt(e) {
     const cf = countryFilter();
     const st = cf && s.dist.find((d) => d.iso === cf.iso);
     const ph = photosFor(s).find((p) => !p.ml);
-    showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(s.common)}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}genus ${esc(s.genus)}${st ? ` · ${esc(st.st.toLowerCase())} in ${esc(cf.label)}` : ""}</span>${S.view === "status" ? `<span>${esc(IUCN[s.iucn] || s.iucn)}${s.trend && s.trend !== "Unknown" ? `, numbers ${esc(s.trend.toLowerCase())}` : ""}</span>` : ""}${s.endemic ? `<span class="tip-end">Found only in ${esc(shortCountry(s.endemic))} · one of ${onlyIn(s.endemic).length} species found only there</span>` : ""}`, e);
+    showTip(`${ph ? `<img class="tip-img" src="${thumb(ph.src, 330)}" alt="" onerror="this.remove()">` : ""}<b>${esc(nameOf(s))}</b><em>${esc(s.sci)}</em><span>${s.mass ? `${s.mass} g · ` : ""}${tx("genus", "género")} ${esc(s.genus)}${st ? ` · ${esc(presenceName(st.st))} ${tx("in", "en")} ${esc(cf.label)}` : ""}</span>${S.view === "status" ? `<span>${esc(IUCN[s.iucn] || s.iucn)}${s.trend && s.trend !== "Unknown" ? tx(`, numbers ${esc(trendName(s.trend))}`, `, población ${esc(trendName(s.trend))}`) : ""}</span>` : ""}${s.endemic ? `<span class="tip-end">${tx(`Found only in ${esc(shortCountry(s.endemic))} · one of ${onlyIn(s.endemic).length} species found only there`, `Solo vive en ${esc(shortCountry(s.endemic))} · una de ${onlyIn(s.endemic).length} especies que solo viven ahí`)}</span>` : ""}`, e);
   } else if (S.hoverCluster) {
     const c = S.hoverCluster;
     const clade = cladeOf(c.level, c.value);
-    showTip(`<small>${RANK[c.level]}</small><b class="sci">${esc(c.value)}</b>${clade ? `<em>${esc(clade)}</em>` : ""}<span>${c.count} species · click to step inside</span>`, e);
+    showTip(`<small>${RANK[c.level]}</small><b class="sci">${esc(c.value)}</b>${clade ? `<em>${esc(clade)}</em>` : ""}<span>${tx(`${c.count} species · click to step inside`, `${c.count} especies · haz clic para entrar`)}</span>`, e);
   } else $("tip").hidden = true;
 }
 
@@ -1155,7 +1180,7 @@ function select(code) {
 function startWander() {
   S.wander.on = true; S.wander.path = []; S.wander.note = null;
   $("wander").setAttribute("aria-pressed", "true");
-  $("wander").querySelector("span").textContent = "Stop";
+  $("wander").querySelector("span").textContent = tx("Stop", "Detener");
   if (S.trail.length > 1) { S.trail = S.trail.slice(0, 1); relayout(); renderTrail(); }
   wanderStep();
 }
@@ -1164,7 +1189,7 @@ function stopWander() {
   S.wander.on = false; clearTimeout(S.wander.timer);
   S.wander.path = []; S.wander.note = null;
   $("wander").setAttribute("aria-pressed", "false");
-  $("wander").querySelector("span").textContent = "Wander";
+  $("wander").querySelector("span").textContent = tx("Wander", "Pasear");
   renderPanel();
 }
 function wanderStep() {
@@ -1173,28 +1198,29 @@ function wanderStep() {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   if (!cur) {
     const s = pick(S.species.filter((s) => !s.extinct));
-    S.wander.path = [s.code]; S.wander.note = `Starting with the ${s.common}.`;
+    S.wander.path = [s.code]; S.wander.note = tx(`Starting with the ${s.common}.`, `Empezamos con ${theEs(s)}.`);
     S.selected = s.code; renderPanel();
   } else {
     const recent = new Set(S.wander.path);
     const fresh = (list) => list.filter((s) => !recent.has(s.code));
     const opts = [];
     const rel = fresh(relatives(cur));
-    if (rel.length) opts.push({ view: "family", list: rel, why: (t) => `a close relative of the ${cur.common}: both are in ${t.genus === cur.genus ? `the genus ${cur.genus}` : groupName(cur)}.` });
+    if (rel.length) opts.push({ view: "family", list: rel, why: (t) => tx(`a close relative of the ${cur.common}: both are in ${t.genus === cur.genus ? `the genus ${cur.genus}` : groupName(cur)}.`,
+                                                                                `son parientes cercanos: los dos están en ${t.genus === cur.genus ? `el género ${cur.genus}` : groupName(cur)}.`) });
     const homes = cur.dist.filter((d) => !isFaint(d.st));
     if (homes.length) {
       const d = pick(homes);
       const list = fresh(S.species.filter((s) => s !== cur && s.dist.some((x) => x.iso === d.iso && !isFaint(x.st))));
-      if (list.length) opts.push({ view: "world", list, why: () => `a neighbor of the ${cur.common}: both live in ${shortCountry(d.c)}.` });
+      if (list.length) opts.push({ view: "world", list, why: () => tx(`a neighbor of the ${cur.common}: both live in ${shortCountry(d.c)}.`, `son vecinos: los dos viven en ${shortCountry(d.c)}.`) });
     }
     const sz = fresh(similarSize(cur, 10));
-    if (sz.length) opts.push({ view: "size", list: sz, why: (t) => `about the same weight as the ${cur.common} (${t.mass} g and ${cur.mass} g).` });
+    if (sz.length) opts.push({ view: "size", list: sz, why: (t) => tx(`about the same weight as the ${cur.common} (${t.mass} g and ${cur.mass} g).`, `pesan casi lo mismo (${t.mass} g y ${cur.mass} g).`) });
     const choices = opts.filter((o) => o.view !== S.wander.lastKind);
     const o = pick(choices.length ? choices : opts);
     if (o) {
       const t = pick(o.list);
       S.wander.lastKind = o.view;
-      S.wander.note = `The ${t.common} is ${o.why(t)}`;
+      S.wander.note = tx(`The ${t.common} is ${o.why(t)}`, `${cap(theEs(t))} y ${theEs(cur)} ${o.why(t)}`);
       S.wander.path.push(t.code);
       if (S.wander.path.length > 7) S.wander.path.shift();
       S.selected = t.code;
@@ -1206,7 +1232,7 @@ function wanderStep() {
 
 /* ---------- Relationships ---------- */
 
-function groupName(s) { return s.tribe !== "—" ? `the tribe ${s.tribe} (${TRIBE[s.tribe]})` : `the subfamily ${s.subfamily} (${SUB[s.subfamily].clade})`; }
+function groupName(s) { return s.tribe !== "—" ? tx(`the tribe ${s.tribe} (${TRIBE[s.tribe]})`, `la tribu ${s.tribe} (${TRIBE[s.tribe]})`) : tx(`the subfamily ${s.subfamily} (${SUB[s.subfamily].clade})`, `la subfamilia ${s.subfamily} (${SUB[s.subfamily].clade})`); }
 function relatives(s) {
   let list = S.species.filter((x) => x !== s && x.genus === s.genus);
   if (!list.length) list = S.species.filter((x) => x !== s && (s.tribe !== "—" ? x.tribe === s.tribe : x.subfamily === s.subfamily));
@@ -1246,8 +1272,8 @@ function dot(s, cls = "") { const [a, b] = SUB[s.subfamily].c; return `<i class=
 function birdChips(list, extra) {
   if (!list.length) return "";
   const sameEndemic = list.every((s) => s.endemic && s.endemic === list[0].endemic);
-  const tag = (s) => (extra ? extra(s) : !sameEndemic && s.endemic ? `only in ${esc(shortCountry(s.endemic))}` : "");
-  return `<div class="chips">${list.map((s) => `<button class="chip" data-act="bird" data-code="${s.code}">${dot(s)}${esc(s.common)}${tag(s) ? ` <small>${tag(s)}</small>` : ""}</button>`).join("")}</div>`;
+  const tag = (s) => (extra ? extra(s) : !sameEndemic && s.endemic ? `${tx("only in", "solo en")} ${esc(shortCountry(s.endemic))}` : "");
+  return `<div class="chips">${list.map((s) => `<button class="chip" data-act="bird" data-code="${s.code}">${dot(s)}${esc(nameOf(s))}${tag(s) ? ` <small>${tag(s)}</small>` : ""}</button>`).join("")}</div>`;
 }
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
@@ -1268,16 +1294,17 @@ function ladderHTML(active) {
   const pending = (t) => `<span class="pending">${t}</span>`;
 
   let tribeRow;
-  if (tr && tr !== "—") tribeRow = row("Tribe", tf.level === "tribe", named(tr, TRIBE[tr]), idx("tribe"));
-  else if (sf && (tf.level !== "subfamily" || nTribe === 0)) tribeRow = row("Tribe", false, pending(`none: ${esc(sf)} isn't split into tribes`));
-  else tribeRow = row("Tribe", false, pending(nTribe ? `${plural(nTribe, "tribe", "tribes")}, the dashed circles` : "none"));
+  const T = RANK.tribe;
+  if (tr && tr !== "—") tribeRow = row(T, tf.level === "tribe", named(tr, TRIBE[tr]), idx("tribe"));
+  else if (sf && (tf.level !== "subfamily" || nTribe === 0)) tribeRow = row(T, false, pending(tx(`none: ${esc(sf)} isn't split into tribes`, `ninguna: ${esc(sf)} no se divide en tribus`)));
+  else tribeRow = row(T, false, pending(nTribe ? tx(`${plural(nTribe, "tribe", "tribes")}, the dashed circles`, `${plural(nTribe, "tribu", "tribus")}, los círculos punteados`) : tx("none", "ninguna")));
 
   return `<ol class="ladder">
-    ${row("Family", !tf, named("Trochilidae", "hummingbirds"), 0)}
-    ${sf ? row("Subfamily", tf.level === "subfamily", named(sf, SUB[sf].clade), idx("subfamily")) : row("Subfamily", false, pending(`${plural(nSub, "subfamily", "subfamilies")}, the big tinted circles`))}
+    ${row(tx("Family", "Familia"), !tf, named("Trochilidae", tx("hummingbirds", "colibríes")), 0)}
+    ${sf ? row(RANK.subfamily, tf.level === "subfamily", named(sf, SUB[sf].clade), idx("subfamily")) : row(RANK.subfamily, false, pending(tx(`${plural(nSub, "subfamily", "subfamilies")}, the big tinted circles`, `${plural(nSub, "subfamilia", "subfamilias")}, los círculos grandes de color`)))}
     ${tribeRow}
-    ${gn ? row("Genus", true, named(gn, cladeOf("genus", gn)), idx("genus")) : row("Genus", false, pending(`${plural(nGen, "genus", "genera")}, the small circles`))}
-    ${row("Species", false, pending(`${plural(active.length, "species", "species")}, each bird`))}
+    ${gn ? row(RANK.genus, true, named(gn, cladeOf("genus", gn)), idx("genus")) : row(RANK.genus, false, pending(tx(`${plural(nGen, "genus", "genera")}, the small circles`, `${plural(nGen, "género", "géneros")}, los círculos pequeños`)))}
+    ${row(tx("Species", "Especie"), false, pending(tx(`${plural(active.length, "species", "species")}, each bird`, `${plural(active.length, "especie", "especies")}, cada ave`)))}
   </ol>`;
 }
 
@@ -1292,13 +1319,22 @@ function sharedHTML(level, value, list) {
   const ctry = d3.rollups(list.flatMap((s) => s.dist.filter((d) => !isFaint(d.st))), (v) => v.length, (d) => d.c).sort((a, b) => b[1] - a[1]);
   const threatened = list.filter((s) => ["VU", "EN", "CR"].includes(s.iucn)).length;
   const items = [];
-  if (wt) items.push(`Weigh ${fmt(wt, "g")} <small>(all hummingbirds: ${fmt(allWt, "g")})</small>`);
-  if (bill) items.push(`Bills ${fmt(bill.map(Math.round), "mm")} long <small>(all: ${fmt(allBill.map(Math.round), "mm")})</small>`);
-  if (hab) items.push(`${hab[1] === list.length ? "All" : `${hab[1]} of ${list.length}`} live mainly in ${esc(hab[0].toLowerCase())}`);
-  if (ctry.length) items.push(`Live in ${plural(ctry.length, "country", "countries")}${list.length > 1 ? `; the most species are in ${esc(shortCountry(ctry[0][0]))} (${ctry[0][1]})` : ""}`);
-  if (threatened) items.push(`${threatened} ${threatened === 1 ? "is" : "are"} threatened (Vulnerable or worse)`);
-  const note = NOTES[level]?.[value];
-  return `<h3>What they share</h3>${note ? `<p class="note">${esc(note)}</p>` : ""}<ul class="shared">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
+  if (ES) {
+    if (wt) items.push(`Pesan ${fmt(wt, "g")} <small>(todos los colibríes: ${fmt(allWt, "g")})</small>`);
+    if (bill) items.push(`Pico de ${fmt(bill.map(Math.round), "mm")} <small>(todos: ${fmt(allBill.map(Math.round), "mm")})</small>`);
+    if (hab) items.push(`${hab[1] === list.length ? "Todos viven" : `${hab[1]} de ${list.length} viven`} sobre todo en ${esc(habitatName(hab[0]).toLowerCase())}`);
+    if (ctry.length) items.push(`Viven en ${plural(ctry.length, "país", "países")}${list.length > 1 ? `; donde hay más especies es ${esc(shortCountry(ctry[0][0]))} (${ctry[0][1]})` : ""}`);
+    if (threatened) items.push(`${threatened} ${threatened === 1 ? "está amenazada" : "están amenazadas"} (Vulnerable o peor)`);
+  } else {
+    if (wt) items.push(`Weigh ${fmt(wt, "g")} <small>(all hummingbirds: ${fmt(allWt, "g")})</small>`);
+    if (bill) items.push(`Bills ${fmt(bill.map(Math.round), "mm")} long <small>(all: ${fmt(allBill.map(Math.round), "mm")})</small>`);
+    if (hab) items.push(`${hab[1] === list.length ? "All" : `${hab[1]} of ${list.length}`} live mainly in ${esc(hab[0].toLowerCase())}`);
+    if (ctry.length) items.push(`Live in ${plural(ctry.length, "country", "countries")}${list.length > 1 ? `; the most species are in ${esc(shortCountry(ctry[0][0]))} (${ctry[0][1]})` : ""}`);
+    if (threatened) items.push(`${threatened} ${threatened === 1 ? "is" : "are"} threatened (Vulnerable or worse)`);
+  }
+  // Spanish: the approved subfamily and tribe notes only; genus notes are still English drafts under review.
+  const note = ES ? ES_DATA.notes[level]?.[value] : NOTES[level]?.[value];
+  return `<h3>${tx("What they share", "Lo que tienen en común")}</h3>${note ? `<p class="note">${esc(note)}</p>` : ""}<ul class="shared">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
 }
 
 function renderPanel() {
@@ -1307,6 +1343,9 @@ function renderPanel() {
   const url = new URL(location.href);
   if (S.selected) url.searchParams.set("species", S.selected); else url.searchParams.delete("species");
   if (url.href !== location.href) history.replaceState(null, "", url);
+  // The language switch opens the same card in the other language (the Spanish page's <base> is the site root).
+  const lang = $("langBtn");
+  if (lang) lang.href = (ES ? "./" : "es/") + (S.selected ? `?species=${S.selected}` : "");
   p.classList.toggle("open", !!S.selected);
   cardCanvas = null;
   if (S.selected) { p.innerHTML = cardHTML(S.byCode[S.selected]); cardCanvas = p.querySelector(".swatch canvas"); return; }
@@ -1318,19 +1357,21 @@ function renderPanel() {
   if (tf) {
     html += `<div class="kicker">${RANK[tf.level]}</div><h2 class="sci">${esc(tf.value)}</h2>`;
     const clade = cladeOf(tf.level, tf.value);
-    if (clade) html += `<p class="lede">${tf.level === "genus" ? "Called " : ""}${esc(clade)}</p>`;
-    if (cf) html += `<p class="lede">${active.length} of them in ${esc(cf.label)}</p>`;
+    if (clade) html += `<p class="lede">${tf.level === "genus" ? tx("Called ", "Llamados ") : ""}${esc(clade)}</p>`;
+    if (cf) html += `<p class="lede">${tx(`${active.length} of them in`, `${active.length} de ellos en`)} ${esc(cf.label)}</p>`;
   } else if (cf) {
-    html += `<h2>${esc(cf.label)}</h2><p class="lede">${plural(active.length, "hummingbird species", "hummingbird species")}</p>`;
+    html += `<h2>${esc(cf.label)}</h2><p class="lede">${tx(plural(active.length, "hummingbird species", "hummingbird species"), plural(active.length, "especie de colibrí", "especies de colibrí"))}</p>`;
   } else {
-    html += `<h2>${active.length} hummingbirds</h2><p class="lede">Every hummingbird species belongs to one family, Trochilidae. Biologists sort the family into nested groups, from broad to narrow:</p><p class="lede"><a href="species/">List of all ${active.length} species</a>, each with its own page.</p>`;
+    html += ES
+      ? `<h2>${active.length} colibríes</h2><p class="lede">Todas las especies de colibrí pertenecen a una familia, Trochilidae. Los biólogos ordenan la familia en grupos, uno dentro de otro, de los más amplios a los más pequeños:</p><p class="lede"><a href="es/especies/">Lista de las ${active.length} especies</a>, cada una con su propia página.</p>`
+      : `<h2>${active.length} hummingbirds</h2><p class="lede">Every hummingbird species belongs to one family, Trochilidae. Biologists sort the family into nested groups, from broad to narrow:</p><p class="lede"><a href="species/">List of all ${active.length} species</a>, each with its own page.</p>`;
   }
   if (cf) {
     const res = active.filter((s) => !isFaint(s.dist.find((d) => d.iso === cf.iso).st)).length;
-    if (res < active.length) html += `<p class="lede">${res} live here; ${active.length - res} are rare visitors or uncertain (shown faded).</p>`;
+    if (res < active.length) html += `<p class="lede">${tx(`${res} live here; ${active.length - res} are rare visitors or uncertain (shown faded).`, `${res} viven aquí; ${active.length - res} son visitantes raros o inciertos (se ven más tenues).`)}</p>`;
   }
 
-  html += `<h3>How the family is organized</h3>${ladderHTML(active)}`;
+  html += `<h3>${tx("How the family is organized", "Cómo se organiza la familia")}</h3>${ladderHTML(active)}`;
   if (tf) html += sharedHTML(tf.level, tf.value, active);
 
   // List the next level down from wherever the trail has narrowed to.
@@ -1338,16 +1379,16 @@ function renderPanel() {
   if (tf?.level === "subfamily") level = active.some((s) => s.tribe !== "—") ? "tribe" : "genus";
   else if (tf?.level === "tribe") level = "genus";
   if (tf?.level === "genus") {
-    html += `<h3>Its species</h3>${birdChips(active)}`;
+    html += `<h3>${tx("Its species", "Sus especies")}</h3>${birdChips(active)}`;
   } else {
     const groups = d3.groups(active, (s) => s[level]).sort((a, b) => a[1][0].seq - b[1][0].seq);
-    html += `<h3>${{ subfamily: "Subfamilies", tribe: "Tribes", genus: "Genera" }[level]} here</h3><div class="legend">${groups.map(([v, list]) =>
+    html += `<h3>${(ES ? { subfamily: "Subfamilias", tribe: "Tribus", genus: "Géneros" } : { subfamily: "Subfamilies", tribe: "Tribes", genus: "Genera" })[level]}${tx(" here", " aquí")}</h3><div class="legend">${groups.map(([v, list]) =>
       `<button data-act="taxon" data-level="${level}" data-value="${esc(v)}">${dot(list[0], "lg")}<span><b class="sci">${esc(v)}</b><em>${esc(cladeOf(level, v))}</em></span><small>${list.length}</small></button>`).join("")}</div>`;
   }
 
   if (cf) {
     const only = onlyIn(cf.name).filter((s) => S.active.has(s.code));
-    html += `<h3>Found only in ${esc(cf.label)}${only.length ? ` (${only.length} species)` : ""}</h3>` + (only.length ? birdChips(only) : `<p class="empty">No hummingbird here is found only in ${esc(cf.label)}.</p>`);
+    html += `<h3>${tx("Found only in", "Solo viven en")} ${esc(cf.label)}${only.length ? tx(` (${only.length} species)`, ` (${only.length} especies)`) : ""}</h3>` + (only.length ? birdChips(only) : `<p class="empty">${tx(`No hummingbird here is found only in ${esc(cf.label)}.`, `Ningún colibrí de aquí vive solo en ${esc(cf.label)}.`)}</p>`);
   }
   p.innerHTML = html;
 }
@@ -1360,31 +1401,32 @@ function photosFor(s) {
 
 // An image, or for Macaulay photos their embed (which carries its own credit line).
 function mediaHTML(ph, name) {
-  if (ph.ml) return `<iframe src="${esc(ph.page)}/embed" title="${esc(name)}, photo from the Macaulay Library" loading="lazy" allowfullscreen></iframe>`;
-  return `<img src="${esc(ph.src)}" alt="${esc(name)}" data-act="zoom" title="View larger">`;
+  if (ph.ml) return `<iframe src="${esc(ph.page)}/embed" title="${esc(name)}, ${tx("photo from the Macaulay Library", "foto de la Macaulay Library")}" loading="lazy" allowfullscreen></iframe>`;
+  return `<img src="${esc(ph.src)}" alt="${esc(name)}" data-act="zoom" title="${tx("View larger", "Ver más grande")}">`;
 }
 
 function creditHTML(ph) {
-  if (ph.ml) return `Photo from the <a href="${esc(ph.page)}" target="_blank" rel="noopener">Macaulay Library (ML${esc(ph.ml)})</a>; photographer credited in the photo`;
+  if (ph.ml) return tx(`Photo from the <a href="${esc(ph.page)}" target="_blank" rel="noopener">Macaulay Library (ML${esc(ph.ml)})</a>; photographer credited in the photo`,
+                       `Foto de la <a href="${esc(ph.page)}" target="_blank" rel="noopener">Macaulay Library (ML${esc(ph.ml)})</a>; el crédito del fotógrafo aparece en la foto`);
   const lic = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener">${esc(ph.license)}</a>` : esc(ph.license);
   const src = ph.page ? ` · <a href="${esc(ph.page)}" target="_blank" rel="noopener">${esc(ph.site || "Wikimedia Commons")}</a>` : "";
-  return `Photo: ${esc(ph.artist)} · ${lic}${src}`;
+  return `${tx("Photo", "Foto")}: ${esc(ph.artist)} · ${ES && ph.license === "All rights reserved" ? "Todos los derechos reservados" : lic}${src}`;
 }
 
 // The species' photos as a small carousel (arrows only when there's more than one),
 // or the animated shape when there's no free photo.
 function photoHTML(s) {
   const list = photosFor(s);
-  if (!list.length) return `<div class="swatch"><canvas></canvas><span class="photo-note">No free photo yet</span></div>`;
+  if (!list.length) return `<div class="swatch"><canvas></canvas><span class="photo-note">${tx("No free photo yet", "Todavía no hay foto libre")}</span></div>`;
   const nav = list.length > 1 ? `
-    <button class="pnav prev" data-act="photo" data-step="-1" aria-label="Previous photo">‹</button>
-    <button class="pnav next" data-act="photo" data-step="1" aria-label="Next photo">›</button>
+    <button class="pnav prev" data-act="photo" data-step="-1" aria-label="${tx("Previous photo", "Foto anterior")}">‹</button>
+    <button class="pnav next" data-act="photo" data-step="1" aria-label="${tx("Next photo", "Foto siguiente")}">›</button>
     <span class="pcount">1 / ${list.length}</span>` : "";
   // The frame takes the shape of the tallest photo (within limits), so photos fill it instead of sitting between bars.
   const shapes = list.filter((p) => p.w && p.h).map((p) => p.w / p.h);
   const ratio = shapes.length ? clamp(Math.min(...shapes), 0.8, 1.6) : 4 / 3;
-  return `<figure class="photo" data-i="0"><div class="pframe${list[0].ml ? " ml" : ""}" style="aspect-ratio:${ratio.toFixed(3)}"><div class="pmedia">${mediaHTML(list[0], s.common)}</div>
-    <button class="pzoom" data-act="zoom" aria-label="View larger" title="View larger">⤢</button>${nav}</div>
+  return `<figure class="photo" data-i="0"><div class="pframe${list[0].ml ? " ml" : ""}" style="aspect-ratio:${ratio.toFixed(3)}"><div class="pmedia">${mediaHTML(list[0], nameOf(s))}</div>
+    <button class="pzoom" data-act="zoom" aria-label="${tx("View larger", "Ver más grande")}" title="${tx("View larger", "Ver más grande")}">⤢</button>${nav}</div>
     <figcaption>${creditHTML(list[0])}</figcaption></figure>`;
 }
 
@@ -1399,7 +1441,7 @@ function openLightbox() {
   if (list[i]?.ml) { window.open(list[i].page, "_blank", "noopener"); return; }
   // The viewer steps through regular photos only; Macaulay ones stay on the card.
   const shown = list.filter((p) => !p.ml);
-  S.lb = { list: shown, i: shown.indexOf(list[i]), name: s.common, all: list };
+  S.lb = { list: shown, i: shown.indexOf(list[i]), name: nameOf(s), all: list };
   renderLightbox();
   $("lightbox").showModal();
 }
@@ -1408,7 +1450,7 @@ function renderLightbox() {
   const img = $("lbImg"), frame = $("lbFrame");
   img.hidden = !!ph.ml;
   frame.hidden = !ph.ml;
-  if (ph.ml) { frame.src = `${ph.page}/embed`; frame.title = `${name}, photo from the Macaulay Library`; }
+  if (ph.ml) { frame.src = `${ph.page}/embed`; frame.title = `${name}, ${tx("photo from the Macaulay Library", "foto de la Macaulay Library")}`; }
   else frame.removeAttribute("src");
   if (!ph.ml) img.src = bigSrc(ph);
   img.onerror = () => { img.onerror = null; img.src = ph.src; };
@@ -1432,7 +1474,7 @@ function stepPhoto(step) {
   if (!fig || list.length < 2) return;
   const i = (+fig.dataset.i + step + list.length) % list.length;
   fig.dataset.i = i;
-  fig.querySelector(".pmedia").innerHTML = mediaHTML(list[i], S.byCode[S.selected].common);
+  fig.querySelector(".pmedia").innerHTML = mediaHTML(list[i], nameOf(S.byCode[S.selected]));
   fig.querySelector(".pframe").classList.toggle("ml", !!list[i].ml);
   fig.querySelector(".pcount").textContent = `${i + 1} / ${list.length}`;
   fig.querySelector("figcaption").innerHTML = creditHTML(list[i]);
@@ -1445,29 +1487,29 @@ function cardHTML(s) {
   const order = (d) => (isFaint(d.st) ? 1 : 0);
   const dist = [...s.dist].sort((a, b) => order(a) - order(b) || (b.n || 0) - (a.n || 0));
   const rel = relatives(s);
-  const relTitle = rel.length && rel[0].genus === s.genus ? `Others in the genus <i>${esc(s.genus)}</i>` : `Nearest relatives, in ${esc(groupName(s))}`;
-  const genusNote = NOTES.genus[s.genus];
+  const relTitle = rel.length && rel[0].genus === s.genus ? tx(`Others in the genus <i>${esc(s.genus)}</i>`, `Otros del género <i>${esc(s.genus)}</i>`) : tx(`Nearest relatives, in ${esc(groupName(s))}`, `Parientes más cercanos, en ${esc(groupName(s))}`);
+  const genusNote = ES ? null : NOTES.genus[s.genus];
   const placeRow = (level, value, clade) =>
     `<button class="place" data-act="taxon" data-level="${level}" data-value="${esc(value)}" data-view="family"><span class="rank">${RANK[level]}</span><b class="sci">${esc(value)}</b>${clade ? `<em>${esc(clade)}</em>` : ""}</button>`;
 
   return `
-  <div class="hero"><button class="close" data-act="close" aria-label="Close">×</button>${photoHTML(s)}</div>
+  <div class="hero"><button class="close" data-act="close" aria-label="${tx("Close", "Cerrar")}">×</button>${photoHTML(s)}</div>
   ${S.wander.on && S.wander.note ? `<p class="wandernote">${esc(S.wander.note)}</p>` : ""}
-  <h2>${esc(s.common)}</h2>
+  <h2>${esc(nameOf(s))}</h2>
   <div class="sci big">${esc(s.sci)}</div>
-  <div class="es">${esc(s.es)}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species</span>` : ""}<a class="ext" href="${pageOf(s)}">Species page</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}" target="_blank" rel="noopener">eBird page ↗</a></p>
+  <div class="es">${ES ? "Inglés: " : ""}${esc(otherName(s))}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
+  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="${pageOf(s)}">${tx("Species page", "Página de la especie")}</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
 
-  <h3>At a glance</h3>
+  <h3>${tx("At a glance", "De un vistazo")}</h3>
   <dl class="facts">
-    ${s.mass ? `<dt>Weight</dt><dd>${s.mass} g, about ${clips} paperclip${clips > 1 ? "s" : ""}</dd>` : ""}
-    ${s.bill ? `<dt>Bill</dt><dd>${s.bill} mm</dd>` : ""}
-    ${s.habitat ? `<dt>Lives in</dt><dd>${esc(s.habitat)}</dd>` : ""}
-    ${s.migration ? `<dt>Moves</dt><dd>${esc(MOVES[s.migration] || s.migration)}</dd>` : ""}
-    <dt>Status</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(s.trend.toLowerCase())}` : ""}</dd>
+    ${s.mass ? `<dt>${tx("Weight", "Peso")}</dt><dd>${s.mass} g, ${tx(`about ${clips} paperclip${clips > 1 ? "s" : ""}`, `más o menos ${clips} clip${clips > 1 ? "s" : ""}`)}</dd>` : ""}
+    ${s.bill ? `<dt>${tx("Bill", "Pico")}</dt><dd>${s.bill} mm</dd>` : ""}
+    ${s.habitat ? `<dt>${tx("Lives in", "Vive en")}</dt><dd>${esc(habitatName(s.habitat))}</dd>` : ""}
+    ${s.migration ? `<dt>${tx("Moves", "Movimientos")}</dt><dd>${esc(MOVES[s.migration] || s.migration)}</dd>` : ""}
+    <dt>${tx("Status", "Estado")}</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(trendName(s.trend))}` : ""}</dd>
   </dl>
 
-  <h3>Its place in the family</h3>
+  <h3>${tx("Its place in the family", "Su lugar en la familia")}</h3>
   <div class="places">
     ${placeRow("subfamily", s.subfamily, SUB[s.subfamily].clade)}
     ${s.tribe !== "—" ? placeRow("tribe", s.tribe, TRIBE[s.tribe]) : ""}
@@ -1475,13 +1517,13 @@ function cardHTML(s) {
   </div>
   ${genusNote ? `<p class="note"><b>What <i>${esc(s.genus)}</i> share:</b> ${esc(genusNote)}</p>` : ""}
 
-  <h3>Where it lives · ${plural(s.dist.length, "country", "countries")}</h3>
-  <div class="chips">${dist.map((d) => `<button class="chip" data-act="country" data-iso="${d.iso}">${esc(shortCountry(d.c))}${order(d) ? ` <small>${esc(d.st.toLowerCase())}</small>` : ""}</button>`).join("")}</div>
+  <h3>${tx("Where it lives", "Dónde vive")} · ${ES ? plural(s.dist.length, "país", "países") : plural(s.dist.length, "country", "countries")}</h3>
+  <div class="chips">${dist.map((d) => `<button class="chip" data-act="country" data-iso="${d.iso}">${esc(shortCountry(d.c))}${order(d) ? ` <small>${esc(presenceName(d.st))}</small>` : ""}</button>`).join("")}</div>
 
   <h3>${relTitle}</h3>
-  ${birdChips(rel) || `<p class="empty">None.</p>`}
+  ${birdChips(rel) || `<p class="empty">${tx("None.", "Ninguno.")}</p>`}
 
-  ${s.endemic ? `<h3>Other hummingbirds found only in ${esc(shortCountry(s.endemic))}${only.length ? ` (${only.length})` : ""}</h3>${birdChips(only) || `<p class="empty">It is the only hummingbird found only in ${esc(shortCountry(s.endemic))}.</p>`}` : ""}
+  ${s.endemic ? `<h3>${tx("Other hummingbirds found only in", "Otros colibríes que solo viven en")} ${esc(shortCountry(s.endemic))}${only.length ? ` (${only.length})` : ""}</h3>${birdChips(only) || `<p class="empty">${tx(`It is the only hummingbird found only in ${esc(shortCountry(s.endemic))}.`, `Es el único colibrí que solo vive en ${esc(shortCountry(s.endemic))}.`)}</p>`}` : ""}
 
   `;
 }
@@ -1503,7 +1545,7 @@ function searchIndex() {
       groups.push({ level, value: v, clade, text: norm(`${v} ${clade}`), sample: s });
     }
   }
-  const species = S.species.map((s) => ({ s, text: norm(`${s.common} ${s.sci} ${s.es} ${s.ioc_name || ""}`), name: norm(s.common) }));
+  const species = S.species.map((s) => ({ s, text: norm(`${s.common} ${s.sci} ${s.es} ${s.ioc_name || ""}`), name: norm(nameOf(s)) }));
   return { groups, species };
 }
 
@@ -1522,7 +1564,7 @@ function bindSearch() {
   const input = $("q"), list = $("results");
   // The full hint only fits on wide screens; elsewhere it would be cut off mid-word.
   const roomy = matchMedia("(min-width: 1241px), (max-width: 800px)");
-  const setHint = () => { input.placeholder = roomy.matches ? "Search species or groups" : "Search"; };
+  const setHint = () => { input.placeholder = roomy.matches ? tx("Search species or groups", "Buscar especies o grupos") : tx("Search", "Buscar"); };
   setHint();
   roomy.addEventListener("change", setHint);
   let idx = null, items = [], cur = -1;
@@ -1534,12 +1576,12 @@ function bindSearch() {
   btn.addEventListener("click", openBox);
   const render = () => {
     if (!items.length) {
-      list.innerHTML = input.value.trim() ? `<li class="none">No matches</li>` : "";
+      list.innerHTML = input.value.trim() ? `<li class="none">${tx("No matches", "Sin resultados")}</li>` : "";
       list.hidden = !input.value.trim();
       return;
     }
     list.innerHTML = items.map((it, i) => it.kind === "species"
-      ? `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}">${dot(it.s)}<span><b>${esc(it.s.common)}</b><em>${esc(it.s.sci)}</em></span></li>`
+      ? `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}">${dot(it.s)}<span><b>${esc(nameOf(it.s))}</b><em>${esc(it.s.sci)}</em></span></li>`
       : `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}">${dot(it.sample)}<span><small>${RANK[it.level]}</small><b class="sci">${esc(it.value)}</b>${it.clade ? `<em>${esc(it.clade)}</em>` : ""}</span></li>`).join("");
     list.hidden = false;
     input.setAttribute("aria-expanded", "true");

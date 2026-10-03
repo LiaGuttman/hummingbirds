@@ -58,6 +58,8 @@ button { font: inherit; color: inherit; }
   backdrop-filter: blur(8px);
 }
 .wander svg { width: 18px; height: 18px; }
+.wander.lang { color: var(--fg); text-decoration: none; font-size: 13px; letter-spacing: 0.06em; padding: 7px 12px; }
+.wander.lang:hover { background: rgba(255,255,255,0.08); }
 .wander:hover { border-color: rgba(255,255,255,0.3); }
 .wander[aria-pressed="true"] { background: var(--accent); color: #062019; border-color: var(--accent); }
 
@@ -329,6 +331,7 @@ button { font: inherit; color: inherit; }
   .views { order: 3; width: 100%; justify-content: space-between; }
   .views button { padding: 6px 4px; font-size: 13px; flex: 1; white-space: nowrap; }
   .wander { padding: 6px 10px; margin-left: auto; }
+  .wander + .wander { margin-left: 0; }
   .search { order: 4; width: 100%; margin-left: 0; }
   .trail { top: 146px; left: 16px; right: 16px; }
   .credits-link { right: 16px; bottom: 12px; }
@@ -489,3 +492,12 @@ button { font: inherit; color: inherit; }
 .an-model { font-size: 15px; color: var(--muted); }
 .an-model b { color: var(--fg); font-weight: 600; }
 .an-model .an-meet { margin-top: 8px; display: inline-block; }
+
+/* Narrow phones: tighten the header so the logo, the two icon buttons and the language switch share one row. */
+@media (max-width: 420px) {
+  .top { column-gap: 7px; }
+  .brand { gap: 8px; }
+  .brand h1 { font-size: 18px; }
+  .wander { padding: 6px 8px; }
+  .wander.lang { padding: 6px 9px; font-size: 12px; }
+}
