@@ -1,6 +1,7 @@
 /* Anatomy page: a 3D Swallow-tailed Hummingbird with a dot on each body part.
    Tapping a dot opens a short card written for kids, with links into the collection.
    Texts were reviewed and approved by Lia (Oct 2026); every fact has a source listed under it.
+   The Heart card was added on Oct 3 2026 at her request, from the two sources listed under it.
    Model: "Swallow-tailed Hummingbird" by gelmi.com.br on Sketchfab, CC BY 4.0. */
 (function () {
   const VIEWER = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.3.1/dist/model-viewer.min.js";
@@ -35,6 +36,13 @@
       wow: "That's why the throat can look black one moment and blaze red or purple the next, when the bird turns its head.",
       meet: [["rthhum", "Ruby-throated Hummingbird"], ["annhum", "Anna's Hummingbird"]],
       sources: [["Field Museum, 2020", "https://www.fieldmuseum.org/about/press/hummingbirds-rainbow-colors-come-pancake-shaped-structures-their-feathers"], ["Simpson and McGraw, 2018 (ASU)", "https://asu.elsevierpure.com/en/publications/two-ways-to-display-male-hummingbirds-show-different-color-displa"]]
+    },
+    {
+      id: "heart", name: "Heart", pos: "-42.60 82.57 94.12", normal: "-0.11 -0.01 0.99",
+      kids: "A hummingbird's heart is huge for its size: between 2 and 5% of its whole body weight. In people and other primates it's only about 0.5%. A big, fast heart gives the bird all the oxygen it needs. Even at rest it beats 500 to 600 times a minute.",
+      wow: "The heart of a Blue-throated Mountain-gem was once measured beating 1,260 times a minute: 21 beats every second! But at night, or when it's too cold to find food, a hummingbird can go into a sleep-like state called torpor, and its heart slows to fewer than 50 beats a minute.",
+      meet: [["buthum", "Blue-throated Mountain-gem, 1,260 beats a minute"]],
+      sources: [["Heart, Musée de la nature et des sciences (Virtual Museum of Canada)", "https://colibri-hummingbird.mns2.ca/En/Hummingbird/The-Life-Of-The-Hummingbird/Internal-Morphology/a-bird-with-a-big-heart.html"], ["Journey North, \"Surviving Cold Temperatures\"", "https://archive.journeynorth.org/hummingbirds/resources/article/surviving-cold-temperatures.html"]]
     },
     {
       id: "feathers", name: "Feathers", pos: "-13.96 60.13 98.37", normal: "-0.02 -0.17 0.98",
@@ -85,6 +93,10 @@
       kids: "Muchos machos tienen plumas brillantes en la garganta, llamadas gorguera. Ese color no es pintura. Viene de unas formas diminutas, planas y con burbujitas dentro de las plumas, que rebotan la luz como una burbuja de jabón. Los machos la usan para impresionar a las hembras: hacen un pequeño baile en el aire frente a ella, y la gorguera destella cuando le da la luz del sol.",
       wow: "Por eso la garganta puede verse negra en un momento y roja o morada brillante al siguiente, cuando el ave gira la cabeza.",
       meet: ["Colibrí Garganta Rubí", "Colibrí Cabeza Roja"] },
+    heart: { name: "Corazón",
+      kids: "El corazón del colibrí es enorme para su tamaño: pesa entre el 2 y el 5% de todo su cuerpo. En las personas y otros primates es apenas el 0.5%. Un corazón grande y rápido le da al ave todo el oxígeno que necesita. Aun en reposo, late de 500 a 600 veces por minuto.",
+      wow: "Una vez se midió el corazón de un Colibrí Garganta Azul latiendo 1,260 veces por minuto: ¡21 latidos cada segundo! Pero de noche, o cuando hace demasiado frío para encontrar comida, el colibrí puede entrar en un estado parecido al sueño llamado torpor, y su corazón baja a menos de 50 latidos por minuto.",
+      meet: ["Colibrí Garganta Azul, 1,260 latidos por minuto"] },
     feathers: { name: "Plumas",
       kids: "Las plumas mantienen caliente al colibrí, le ayudan a volar y le dan sus colores. Los verdes, azules y rojos brillantes no vienen de ningún pigmento: unas formas diminutas en las plumas rebotan la luz de una manera especial. A esto se le llama color estructural, y cuando el color cambia al moverte se llama iridiscencia.",
       wow: "Un Colibrí Garganta Rubí tiene solo unas 940 plumas, y mantiene cada una limpia y ordenada para volar.",
