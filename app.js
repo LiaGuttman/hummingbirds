@@ -1480,6 +1480,9 @@ function stepPhoto(step) {
   fig.querySelector("figcaption").innerHTML = creditHTML(list[i]);
 }
 
+// For recent splits BirdLife's data doesn't cover: how old or indirect the rating is, with its source.
+const statusNote = (s) => (s.status_note ? `<small class="stnote">${esc(ES ? s.status_note_es : s.status_note)} <a href="${esc(s.status_src)}" target="_blank" rel="noopener">Birds of the World ↗</a></small>` : "");
+
 function cardHTML(s) {
   const clips = s.mass ? Math.max(1, Math.round(s.mass)) : 0;
   const cf = countryFilter();
@@ -1506,7 +1509,7 @@ function cardHTML(s) {
     ${s.bill ? `<dt>${tx("Bill", "Pico")}</dt><dd>${s.bill} mm</dd>` : ""}
     ${s.habitat ? `<dt>${tx("Lives in", "Vive en")}</dt><dd>${esc(habitatName(s.habitat))}</dd>` : ""}
     ${s.migration ? `<dt>${tx("Moves", "Movimientos")}</dt><dd>${esc(MOVES[s.migration] || s.migration)}</dd>` : ""}
-    <dt>${tx("Status", "Estado")}</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(trendName(s.trend))}` : ""}</dd>
+    <dt>${tx("Status", "Estado")}</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(trendName(s.trend))}` : ""}${statusNote(s)}</dd>
   </dl>
 
   <h3>${tx("Its place in the family", "Su lugar en la familia")}</h3>

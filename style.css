@@ -36,7 +36,7 @@ button { font: inherit; color: inherit; }
 .top > * { pointer-events: auto; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand .logo { width: 30px; height: 44px; color: var(--fg); flex: none; margin: -4px 0; }
-.brand h1 { font: 600 24px/1 var(--display); margin: 0; letter-spacing: -0.01em; }
+.brand h1 { font: 600 24px/1 var(--display); margin: 0; letter-spacing: -0.01em; white-space: nowrap; }
 .count { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 .views {
@@ -216,6 +216,7 @@ button { font: inherit; color: inherit; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; }
 .status { color: var(--st); font-weight: 500; }
+.stnote { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 3px; }
 .status::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--st); margin-right: 7px; vertical-align: 1px; }
 .links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 0; }
 .ext { color: var(--accent); font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(127,224,196,0.4); }
@@ -305,7 +306,7 @@ button { font: inherit; color: inherit; }
   .panel { padding: 20px; }
   .panel h2 { font-size: 27px; }
 }
-@media (min-width: 801px) and (max-width: 1020px) {
+@media (min-width: 801px) and (max-width: 1120px) {
   :root { --panel-w: 290px; }
   .top { gap: 10px; padding-left: 16px; padding-right: 16px; }
   .brand { gap: 8px; }
@@ -316,6 +317,9 @@ button { font: inherit; color: inherit; }
   .wander { padding: 7px 10px; }
   .wander span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .trail { left: 16px; }
+  /* Room for the language switch: the name stays on one line, the tabs and buttons tighten. */
+  .brand h1 { white-space: nowrap; }
+  .wander.lang { padding: 7px 9px; }
   .panel { padding: 18px; right: 12px; }
   .ladder li, .place { grid-template-columns: 76px 1fr; }
   .place { grid-template-columns: 76px auto 1fr; }
@@ -500,4 +504,12 @@ button { font: inherit; color: inherit; }
   .brand h1 { font-size: 18px; }
   .wander { padding: 6px 8px; }
   .wander.lang { padding: 6px 9px; font-size: 12px; }
+}
+
+/* Narrowest desktop widths: tighter tabs so the header still fits on one row. */
+@media (min-width: 801px) and (max-width: 900px) {
+  .top { gap: 8px; }
+  .brand h1 { font-size: 19px; }
+  .views button { padding: 6px 7px; font-size: 13px; }
+  .wander { padding: 7px 8px; }
 }

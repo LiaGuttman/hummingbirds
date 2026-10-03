@@ -6,9 +6,9 @@
    "h": 1346,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Lesser Violetear.jpg",
-   "big": "photos/lesvio1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/lesvio1-1-big.jpg"
   },
   {
    "src": "photos/lesvio1-2.jpg",
@@ -16,9 +16,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Lesser Violetear2.jpg",
-   "big": "photos/lesvio1-2-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/lesvio1-2-big.jpg"
   }
  ],
  "scihum1": [
@@ -38,9 +38,9 @@
    "h": 1081,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Brown Violetear.jpg",
-   "big": "photos/brvear1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/brvear1-1-big.jpg"
   }
  ],
  "fithum1": [
@@ -50,9 +50,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Fiery-throated Hummingbird.png",
-   "big": "photos/fithum1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/fithum1-1-big.jpg"
   }
  ],
  "greher1": [
@@ -62,9 +62,9 @@
    "h": 1314,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Green Hermit.png",
-   "big": "photos/greher1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/greher1-1-big.jpg"
   }
  ],
  "grcbri1": [
@@ -74,9 +74,9 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Green-crowned Brilliant.jpeg",
-   "big": "photos/grcbri1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/grcbri1-1-big.jpg"
   }
  ],
  "lobher": [
@@ -86,9 +86,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Long-billed Hermit.jpeg",
-   "big": "photos/lobher-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/lobher-1-big.jpg"
   }
  ],
  "maghum1": [
@@ -98,9 +98,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Rivoli's Hummingbird.jpeg",
-   "big": "photos/maghum1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/maghum1-1-big.jpg"
   }
  ],
  "whnjac1": [
@@ -110,8 +110,8 @@
    "h": 1366,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
-   "file": "White-necked Jacobin.jpeg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "file": "White-necked Jacobin.jpeg"
   }
  ],
  "wtmgem1": [
@@ -121,9 +121,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "White-throated Mountain-gem.jpg",
-   "big": "photos/wtmgem1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/wtmgem1-1-big.jpg"
   },
   {
    "src": "photos/wtmgem1-2.jpg",
@@ -131,8 +131,8 @@
    "h": 1500,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
-   "file": "White-throated Mountain-gem2.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "file": "White-throated Mountain-gem2.jpg"
   }
  ],
  "blchum1": [
@@ -142,9 +142,9 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Blue-chested Hummingbird.jpeg",
-   "big": "photos/blchum1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/blchum1-1-big.jpg"
   }
  ],
  "gareme1": [
@@ -154,9 +154,9 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Garden Emerald .jpeg",
-   "big": "photos/gareme1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/gareme1-1-big.jpg"
   }
  ],
  "rthhum": [
@@ -166,9 +166,9 @@
    "h": 1200,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Ruby-throated Hummingbird .jpeg",
-   "big": "photos/rthhum-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/rthhum-1-big.jpg"
   }
  ],
  "rtlhum": [
@@ -178,9 +178,9 @@
    "h": 1349,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Rufous-tailed Hummingbird.jpg",
-   "big": "photos/rtlhum-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/rtlhum-1-big.jpg"
   }
  ],
  "viosab1": [
@@ -190,9 +190,9 @@
    "h": 1433,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Violet Sabrewing.jpg",
-   "big": "photos/viosab1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/viosab1-1-big.jpg"
   }
  ],
  "brtplu1": [
@@ -202,40 +202,40 @@
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Bronze-tailed Plumeleteer.jpg",
-   "big": "photos/brtplu1-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/brtplu1-1-big.jpg"
   }
  ],
  "maghum2": [
   {
    "src": "photos/maghum2-1.jpg",
-   "w": 1360,
-   "h": 1600,
-   "artist": "Lia Guttman",
-   "license": "CC BY 4.0",
-   "file": "Talamanca Hummingbird.jpg",
-   "big": "photos/maghum2-1-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
-  },
-  {
-   "src": "photos/maghum2-2.jpg",
    "w": 1200,
    "h": 1600,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
    "file": "Talamanca Hummingbird2.jpg",
-   "big": "photos/maghum2-2-big.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "big": "photos/maghum2-1-big.jpg"
   },
   {
-   "src": "photos/maghum2-3.jpg",
+   "src": "photos/maghum2-2.jpg",
    "w": 1125,
    "h": 1500,
    "artist": "Lia Guttman",
    "license": "CC BY 4.0",
-   "file": "Talamanca Hummingbird3.jpg",
-   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "file": "Talamanca Hummingbird3.jpg"
+  },
+  {
+   "src": "photos/maghum2-3.jpg",
+   "w": 1360,
+   "h": 1600,
+   "artist": "Lia Guttman",
+   "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "file": "Talamanca Hummingbird 4.jpg",
+   "big": "photos/maghum2-3-big.jpg"
   }
  ]
 }
