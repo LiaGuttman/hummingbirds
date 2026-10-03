@@ -532,9 +532,10 @@ function layoutWorld(active, R) {
 }
 
 function layoutSize(active, R) {
-  const x = d3.scaleLog().domain([1.8, 21]).range([R.x0 + 40, R.x1 - 40]);
   const base = clamp(Math.min(R.w, R.h) / 140, 2.6, 6);
   const withMass = active.filter((s) => s.mass);
+  if (R.h > R.w * 1.3) return layoutSizeTall(withMass, R, base);
+  const x = d3.scaleLog().domain([1.8, 21]).range([R.x0 + 40, R.x1 - 40]);
   const nodes = withMass.map((s) => ({ s, tx: x(s.mass), x: x(s.mass), y: R.cy + (Math.random() - 0.5) * 10, r: radiusFor(s, base) }));
   const sim = d3.forceSimulation(nodes).stop()
     .force("x", d3.forceX((n) => n.tx).strength(1))
@@ -545,14 +546,34 @@ function layoutSize(active, R) {
   nodes.forEach((n) => targets.set(n.s.code, { x: n.x, y: n.y, r: n.r, a: 1 }));
   const bottom = nodes.length ? d3.max(nodes, (n) => n.y + n.r) : R.cy;
   const top = nodes.length ? d3.min(nodes, (n) => n.y - n.r) : R.cy;
+  return { targets, deco: { kind: "size", x, axisY: Math.min(bottom + 28, R.y1 - 4), top, pins: sizePins(withMass) } };
+}
+// The lightest and heaviest birds, plus a few everyone knows, get their names pinned on.
+function sizePins(withMass) {
   const sorted = [...withMass].sort((a, b) => a.mass - b.mass);
   const pins = new Set();
   if (sorted.length) { pins.add(sorted[0].code); pins.add(sorted[sorted.length - 1].code); }
   for (const name of ["Bee Hummingbird", "Giant Hummingbird", "Ruby-throated Hummingbird"]) {
     const s = withMass.find((s) => s.common === name); if (s) pins.add(s.code);
   }
-  const pinList = [...pins].sort((a, b) => S.byCode[a].mass - S.byCode[b].mass);
-  return { targets, deco: { kind: "size", x, axisY: Math.min(bottom + 28, R.y1 - 4), top, pins: pinList } };
+  return [...pins].sort((a, b) => S.byCode[a].mass - S.byCode[b].mass);
+}
+// Tall screens (phones): the scale runs up the left side, heaviest at the top, and the swarm spreads sideways.
+function layoutSizeTall(withMass, R, base) {
+  const axisX = R.x0 + 34;
+  const y = d3.scaleLog().domain([1.8, 21]).range([R.y1 - 20, R.y0 + 30]);
+  const cx = (axisX + R.x1) / 2;
+  const nodes = withMass.map((s) => ({ s, ty: y(s.mass), y: y(s.mass), x: cx + (Math.random() - 0.5) * 10, r: radiusFor(s, base * 1.25) }));
+  const sim = d3.forceSimulation(nodes).stop()
+    .force("y", d3.forceY((n) => n.ty).strength(1))
+    .force("x", d3.forceX(cx).strength(0.05))
+    .force("c", d3.forceCollide((n) => n.r + 0.8).iterations(3));
+  for (let i = 0; i < 260; i++) sim.tick();
+  // Slide the swarm up against the scale, leaving the right-hand side free for the pinned names.
+  const shift = nodes.length ? axisX + 16 - d3.min(nodes, (n) => n.x - n.r) : 0;
+  const targets = new Map();
+  nodes.forEach((n) => targets.set(n.s.code, { x: n.x + shift, y: n.y, r: n.r, a: 1 }));
+  return { targets, deco: { kind: "size", tall: true, y, axisX, pins: sizePins(withMass) } };
 }
 
 // The same color a category has on the Status view's scale.
@@ -783,7 +804,7 @@ function pill(text, x, y, opts = {}) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const w = ctx.measureText(text).width;
-  x = clamp(x, w / 2 + 10, stageRect(S.view).x1 + 12 - w / 2);
+  x = clamp(x, w / 2 + 10, Math.min(stageRect(S.view).x1 + 12, W - 10) - w / 2);
   ctx.globalAlpha = (opts.alpha ?? 1) * 0.9;
   ctx.fillStyle = "rgba(6,14,40,0.9)";
   ctx.beginPath(); ctx.roundRect(x - w / 2 - 7, y - 11, w + 14, 22, 11); ctx.fill();
@@ -870,6 +891,7 @@ function drawClusterLabels(a) {
 }
 
 function drawSizeAxis(a) {
+  if (S.deco.tall) return drawSizeAxisTall(a);
   const d = S.deco, x = d.x, y = d.axisY;
   ctx.globalAlpha = a * 0.5;
   ctx.strokeStyle = "#d4def5"; ctx.lineWidth = 1;
@@ -890,6 +912,34 @@ function drawSizeAxis(a) {
     ctx.beginPath(); ctx.moveTo(g.sx, g.sy - g.r - 2); ctx.lineTo(g.sx, ly + 11); ctx.stroke();
     pill(`${s.common} · ${s.mass} g`, g.sx, ly, { alpha: a });
   });
+  ctx.globalAlpha = 1;
+}
+
+function drawSizeAxisTall(a) {
+  const d = S.deco, y = d.y, x = d.axisX;
+  ctx.globalAlpha = a * 0.5;
+  ctx.strokeStyle = "#d4def5"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y.range()[0]); ctx.lineTo(x, y.range()[1]); ctx.stroke();
+  ctx.font = "13px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (const t of [2, 3, 4, 5, 6, 8, 10, 15, 20]) {
+    ctx.globalAlpha = a * 0.5;
+    ctx.beginPath(); ctx.moveTo(x - 4, y(t)); ctx.lineTo(x + 4, y(t)); ctx.stroke();
+    ctx.globalAlpha = a * 0.85; ctx.fillStyle = "#d4def5";
+    ctx.fillText(t === 20 ? "20 g" : `${t}`, x - 8, y(t));
+  }
+  // Pinned names sit to the right, joined to their bird by a hairline; close ones are nudged apart.
+  let prev = -Infinity;
+  const rows = d.pins.map((code) => S.byCode[code]).filter((s) => S.active.has(s.code) && s.g.a >= 0.3)
+    .sort((p, q) => q.g.sy - p.g.sy)
+    .map((s) => { const ly = Math.min(s.g.sy, prev === -Infinity ? s.g.sy : prev - 26); prev = ly; return { s, ly }; });
+  ctx.font = "500 13px 'IBM Plex Sans', sans-serif";
+  for (const { s, ly } of rows) {
+    const text = `${s.common} · ${s.mass} g`, w = ctx.measureText(text).width;
+    const lx = W - 10 - w / 2 - 7;
+    ctx.globalAlpha = a * 0.4; ctx.strokeStyle = "#fff";
+    ctx.beginPath(); ctx.moveTo(s.g.sx + s.g.r + 2, s.g.sy); ctx.lineTo(lx - w / 2 - 7, ly); ctx.stroke();
+    pill(text, lx, ly, { alpha: a });
+  }
   ctx.globalAlpha = 1;
 }
 
