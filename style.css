@@ -388,9 +388,10 @@ button { font: inherit; color: inherit; }
 .ladder { list-style: none; margin: 0; padding: 0 0 0 4px; position: relative; }
 .ladder::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 1px; background: var(--line); }
 .ladder li { position: relative; display: grid; grid-template-columns: 84px 1fr; align-items: baseline; padding: 5px 0 5px 22px; }
-.ladder li::before { content: ""; position: absolute; left: 1px; top: 13px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg-2); border: 1px solid var(--muted); }
-.ladder li.here::before { background: var(--accent); border-color: var(--accent); }
-.ladder .rank { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+/* The dot hangs off the rank label, so it stays level with the label however tall the name beside it is. */
+.ladder .rank::before { content: ""; position: absolute; left: -21px; top: 50%; transform: translateY(-50%); width: 9px; height: 9px; border-radius: 50%; background: var(--bg-2); border: 1px solid var(--muted); box-sizing: border-box; }
+.ladder li.here .rank::before { background: var(--accent); border-color: var(--accent); }
+.ladder .rank { position: relative; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .ladder button, .ladder .val { text-align: left; border: 0; background: none; padding: 0; display: flex; flex-direction: column; line-height: 1.3; }
 .ladder button { cursor: pointer; }
 .ladder button:hover b { text-decoration: underline; text-underline-offset: 3px; }
