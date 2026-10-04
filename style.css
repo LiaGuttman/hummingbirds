@@ -220,7 +220,7 @@ button { font: inherit; color: inherit; }
 .status { color: var(--st); font-weight: 500; }
 .stnote { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 3px; }
 .status::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--st); margin-right: 7px; vertical-align: 1px; }
-.links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 0; }
+.links, .panel .links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin: 16px 0 0; }
 .ext { color: var(--accent); font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(127,224,196,0.4); }
 .ext:hover { border-bottom-color: var(--accent); }
 .endemic {
