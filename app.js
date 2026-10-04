@@ -1518,6 +1518,10 @@ function stepPhoto(step) {
 // For recent splits BirdLife's data doesn't cover: how old or indirect the rating is, with its source.
 const statusNote = (s) => (s.status_note ? `<small class="stnote">${esc(ES ? s.status_note_es : s.status_note)} <a href="${esc(s.status_src)}" target="_blank" rel="noopener">Birds of the World ↗</a></small>` : "");
 
+// Opens an email to Lia with the species already named in the subject.
+const CONTACT = "lia@hummingbirds.world";
+const mailto = (s) => `mailto:${CONTACT}?subject=${encodeURIComponent(`${nameOf(s)} (${s.sci})`)}`;
+
 function cardHTML(s) {
   const clips = s.mass ? Math.max(1, Math.round(s.mass)) : 0;
   const cf = countryFilter();
@@ -1563,6 +1567,7 @@ function cardHTML(s) {
 
   ${s.endemic ? `<h3>${tx("Other hummingbirds found only in", "Otros colibríes que solo viven en")} ${esc(shortCountry(s.endemic))}${only.length ? ` (${only.length})` : ""}</h3>${birdChips(only) || `<p class="empty">${tx(`It is the only hummingbird found only in ${esc(shortCountry(s.endemic))}.`, `Es el único colibrí que solo vive en ${esc(shortCountry(s.endemic))}.`)}</p>`}` : ""}
 
+  <p class="report">${tx("Spotted a mistake, or have a photo of this species?", "¿Encontraste un error o tienes una foto de esta especie?")} <a href="${mailto(s)}">${tx("Write to Lia", "Escríbele a Lia")}</a></p>
   `;
 }
 

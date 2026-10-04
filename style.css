@@ -220,6 +220,8 @@ button { font: inherit; color: inherit; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; }
 .status { color: var(--st); font-weight: 500; }
+.panel .report { margin: 22px 0 4px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1); color: var(--muted); font-size: 13px; }
+.report a { color: var(--accent); }
 .stnote { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.4; margin-top: 3px; }
 .status::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--st); margin-right: 7px; vertical-align: 1px; }
 .links, .panel .links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin: 16px 0 0; }
