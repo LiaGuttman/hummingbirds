@@ -2,6 +2,8 @@
 
 > An interactive explorer of all 363 hummingbird species (family Trochilidae), by Lia Guttman, a birder. Personal and non-commercial. In English and in Mexican Spanish.
 
+Each country in the Americas with hummingbirds has its own page: how many species live there, how it ranks against other countries, its endemic species, their Red List status and their sizes.
+
 Each species has its own page with its names (English, scientific, Spanish), its place in the family (subfamily, tribe, genus), weight, bill length, habitat, movement, the countries it lives in, its IUCN Red List status and trend, and a credited photo.
 
 Sources: eBird/Clements Checklist (names and taxonomy; Spanish names from eBird Mexico), Dickinson & Remsen 2013 and McGuire et al. 2014 (subfamilies and tribes), AVONET (Tobias et al. 2022; weight, bill, habitat, movement), BirdLife International DataZone and eBird records via GBIF (countries), BirdLife International / IUCN Red List (status and trend).
@@ -10,4 +12,5 @@ Sources: eBird/Clements Checklist (names and taxonomy; Spanish names from eBird 
 
 - [All 363 species](https://hummingbirds.world/species/): every species, grouped by subfamily and genus, linking to its page
 - [Las 363 especies](https://hummingbirds.world/es/especies/): the same in Mexican Spanish
+- [Hummingbirds by country](https://hummingbirds.world/countries/): every country ranked by number of species and endemics, linking to its page ([en español](https://hummingbirds.world/es/paises/))
 - [The explorer](https://hummingbirds.world/): the interactive site, with family tree, world map, size and status views and a 3D anatomy page ([en español](https://hummingbirds.world/es/))

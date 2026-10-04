@@ -74,9 +74,15 @@ const shortCountry = (c) => {
     const es = ES_DATA.country[isoByName[c]];
     if (es) return es;
   }
-  return c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
+  // Two places that would both read "Virgin Islands" (the same names as the country pages).
+  return { "Virgin Islands (UK)": "British Virgin Islands", "Virgin Islands (US)": "US Virgin Islands" }[c] || c.replace(/\s*\((UK|US|France|Netherlands)\)/, "");
 };
 const massOf = (s) => s.mass || 4;
+// Country pages (scripts/build_country_pages.py) exist for places with at least one species that isn't a rare stray there.
+const countryPageOf = (iso) => {
+  const d = S.species.flatMap((s) => s.dist).find((x) => x.iso === iso && !isFaint(x.st));
+  return d ? `${ES ? "es/paises" : "countries"}/${norm(shortCountry(d.c)).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}/` : null;
+};
 // Address of a species' own page, as written by scripts/build_species_pages.py ("Sword-billed Hummingbird" → species/sword-billed-hummingbird/).
 // The Spanish pages live under es/especies/, named after the Spanish name ("Colibrí Picoespada" → colibri-picoespada).
 const slugOf = (t) => t.normalize("NFKD").replace(/[^\x00-\x7f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -147,10 +153,15 @@ Promise.all([
   bindSearch();
   bindCredits();
   bindLightbox();
-  // A link like hummingbirds.world/?species=swbhum1 (from a species page) opens that card.
-  // Read it first: drawing the panel resets the address to match what's open.
-  const linked = new URLSearchParams(location.search).get("species");
-  setView("swarm", { first: true });
+  // A link like hummingbirds.world/?species=swbhum1 (from a species page) opens that card, and
+  // ?country=MX (from a country page) opens the map on that country.
+  // Read them first: drawing the panel resets the address to match what's open.
+  const params = new URLSearchParams(location.search);
+  const linked = params.get("species");
+  const iso = (params.get("country") || "").toUpperCase();
+  const hasCountry = S.species.some((s) => s.dist.some((d) => d.iso === iso));
+  if (hasCountry) S.trail.push(countryFilterFor(iso));
+  setView(hasCountry ? "world" : "swarm", { first: true });
   if (linked && S.byCode[linked]) select(linked);
   $("loading").classList.add("done");
   requestAnimationFrame(frame);
@@ -1365,10 +1376,12 @@ function renderPanel() {
   // Keep the address bar pointing at the open card, so it can be shared.
   const url = new URL(location.href);
   if (S.selected) url.searchParams.set("species", S.selected); else url.searchParams.delete("species");
+  const inCountry = countryFilter();
+  if (inCountry) url.searchParams.set("country", inCountry.iso); else url.searchParams.delete("country");
   if (url.href !== location.href) history.replaceState(null, "", url);
-  // The language switch opens the same card in the other language (the Spanish page's <base> is the site root).
+  // The language switch opens the same view in the other language (the Spanish page's <base> is the site root).
   const lang = $("langBtn");
-  if (lang) lang.href = (ES ? "./" : "es/") + (S.selected ? `?species=${S.selected}` : "");
+  if (lang) lang.href = (ES ? "./" : "es/") + url.search;
   p.classList.toggle("open", !!S.selected);
   document.body.classList.toggle("card-open", !!S.selected);
   cardCanvas = null;
@@ -1384,7 +1397,9 @@ function renderPanel() {
     if (clade) html += `<p class="lede">${tf.level === "genus" ? tx("Called ", "Llamados ") : ""}${esc(clade)}</p>`;
     if (cf) html += `<p class="lede">${tx(`${active.length} of them in`, `${active.length} de ellos en`)} ${esc(cf.label)}</p>`;
   } else if (cf) {
-    html += `<h2>${esc(cf.label)}</h2><p class="lede">${tx(plural(active.length, "hummingbird species", "hummingbird species"), plural(active.length, "especie de colibrí", "especies de colibrí"))}</p>`;
+    const page = countryPageOf(cf.iso);
+    html += `<h2>${esc(cf.label)}</h2><p class="lede">${tx(plural(active.length, "hummingbird species", "hummingbird species"), plural(active.length, "especie de colibrí", "especies de colibrí"))}</p>`
+      + (page ? `<p class="lede"><a href="${page}">${tx(`Hummingbirds of ${esc(cf.label)}: the country page`, `Colibríes de ${/^Islas |^Bahamas/.test(cf.label) ? "las " : /^República /.test(cf.label) ? "la " : ""}${esc(cf.label)}: la página del país`)}</a></p>` : "");
   } else {
     html += ES
       ? `<h2>${active.length} colibríes</h2><p class="lede">Todas las especies de colibrí pertenecen a una familia, Trochilidae. Los biólogos ordenan la familia en grupos, uno dentro de otro, de los más amplios a los más pequeños:</p><p class="lede"><a href="es/especies/">Lista de las ${active.length} especies</a>, cada una con su propia página.</p>`
