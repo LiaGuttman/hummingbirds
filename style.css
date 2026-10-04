@@ -342,6 +342,8 @@ button { font: inherit; color: inherit; }
   .trail { top: 146px; left: 16px; right: 16px; }
   .credits-link { right: 16px; bottom: 12px; }
   .countries { left: 16px; right: 16px; bottom: 52px; }
+  /* A card covers the bottom of the screen: the hint, the country strip and the credits link hide behind it. */
+  body.card-open .hint, body.card-open .countries, body.card-open .credits-link { visibility: hidden; }
   .hint { left: 16px; right: 132px; bottom: 12px; }
   .panel {
     top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58vh;

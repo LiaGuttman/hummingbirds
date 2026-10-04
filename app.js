@@ -172,7 +172,8 @@ function stageRect(view) {
   const y0 = mobile ? 180 : 104;
   const x1 = W - (mobile ? 16 : panelWidth() + 16 + 28);
   const hintTop = $("hint").getBoundingClientRect().top;
-  const y1 = view === "world" ? H - (mobile ? 100 : 108) : mobile && hintTop > 0 ? hintTop - 10 : H - 52;
+  // Phones: stop above the hint (and on the map, above the country strip that sits on it), however tall it is.
+  const y1 = mobile && hintTop > 0 ? hintTop - (view === "world" ? 60 : 10) : H - (view === "world" ? 108 : 52);
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
 
@@ -262,6 +263,7 @@ function relayout(opts = {}) {
   $("count").textContent = active.length === S.species.length ? tx(`${active.length} species`, `${active.length} especies`) : tx(`${active.length} of ${S.species.length} species`, `${active.length} de ${S.species.length} especies`);
 
   const R = stageRect(S.view);
+  S.layoutY1 = R.y1;
   let out;
   if (S.view === "swarm") out = layoutSwarm(active, R);
   else if (S.view === "family") out = layoutFamily(active, R);
@@ -1165,13 +1167,27 @@ function bindPanels() {
     if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);
   });
   let rt;
+  // The hint's height and place can change after drawing: the web font arrives and rewraps it, Firefox's toolbar
+  // slides in and out, a phone turns. Each time, the country strip moves to sit on it and the chart re-fits.
+  // Only a real change to the chart's bottom edge re-fits it, so the opening flight isn't interrupted.
+  const refit = () => {
+    if (document.activeElement?.matches("input, textarea")) return;
+    const r = $("hint").getBoundingClientRect();
+    $("countries").style.bottom = W <= 800 ? `${Math.round(innerHeight - r.top + 8)}px` : "";
+    if (S.species.length && Math.abs(stageRect(S.view).y1 - S.layoutY1) > 2) relayout({ quick: true });
+  };
+  refit();
+  new ResizeObserver(refit).observe($("hint"));
+  document.fonts?.ready.then(refit);
+  window.visualViewport?.addEventListener("resize", () => setTimeout(refit, 150));
+
   // On phones the keyboard shrinks the window while the search box is in use. That's not a real resize:
   // relaying out into the space above the keyboard squashed the chart, so height-only changes are ignored then.
   let lastW = innerWidth;
   addEventListener("resize", () => {
     if (innerWidth === lastW && document.activeElement?.matches("input, textarea")) return;
     lastW = innerWidth;
-    clearTimeout(rt); rt = setTimeout(() => { resize(); relayout({ quick: true }); }, 120);
+    clearTimeout(rt); rt = setTimeout(() => { resize(); relayout({ quick: true }); refit(); }, 120);
   });
 }
 
@@ -1353,6 +1369,7 @@ function renderPanel() {
   const lang = $("langBtn");
   if (lang) lang.href = (ES ? "./" : "es/") + (S.selected ? `?species=${S.selected}` : "");
   p.classList.toggle("open", !!S.selected);
+  document.body.classList.toggle("card-open", !!S.selected);
   cardCanvas = null;
   if (S.selected) { p.innerHTML = cardHTML(S.byCode[S.selected]); cardCanvas = p.querySelector(".swatch canvas"); return; }
 
