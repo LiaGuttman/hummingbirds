@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-03y">
+<link rel="stylesheet" href="style.css?v=2026-10-03z">
 </head>
 <body>
 <canvas id="stage" aria-label="Todas las especies de colibrí, como figuras de colores"></canvas>
@@ -77,7 +77,15 @@
 
 <aside class="panel" id="panel" aria-live="polite"></aside>
 
-<button class="credits-link" id="creditsBtn">Acerca del sitio</button>
+<div class="foot-links">
+  <button class="share-link" id="shareBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="shareMenu" title="Compartir esta vista">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M6.5 6.5 10 3l3.5 3.5M5 10H4v7h12v-7h-1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Compartir</span>
+  </button>
+  <button class="credits-link" id="creditsBtn">Acerca del sitio</button>
+</div>
+<div class="share-menu" id="shareMenu" role="menu" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <dialog class="anatomy" id="anatomy" aria-labelledby="anatomy-title">
   <div class="an-top">
@@ -148,12 +156,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-03y"></script>
-<script src="traits.js?v=2026-10-03y"></script>
-<script src="i18n.js?v=2026-10-03y"></script>
-<script src="app.js?v=2026-10-03y"></script>
-<script src="anatomy.js?v=2026-10-03y"></script>
-<script src="comet.js?v=2026-10-03y"></script>
+<script src="geo.js?v=2026-10-03z"></script>
+<script src="traits.js?v=2026-10-03z"></script>
+<script src="i18n.js?v=2026-10-03z"></script>
+<script src="app.js?v=2026-10-03z"></script>
+<script src="anatomy.js?v=2026-10-03z"></script>
+<script src="comet.js?v=2026-10-03z"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

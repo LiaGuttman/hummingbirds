@@ -94,8 +94,31 @@ button { font: inherit; color: inherit; }
 .results li.none { color: var(--muted); cursor: default; }
 
 /* Credits */
+.foot-links { position: fixed; right: calc(var(--panel-w) + 40px); bottom: 12px; display: flex; align-items: center; gap: 16px; }
+.share-link {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;
+  border: 1px solid var(--line); background: var(--glass); color: var(--fg); border-radius: 999px; padding: 4px 12px 4px 10px;
+}
+.share-link svg { width: 15px; height: 15px; }
+.share-link:hover, .share-link[aria-expanded="true"] { border-color: rgba(255,255,255,0.3); }
+.share-menu {
+  position: fixed; right: calc(var(--panel-w) + 40px); bottom: 50px; z-index: 30; min-width: 220px; max-width: calc(100vw - 32px);
+  background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 6px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  display: flex; flex-direction: column;
+}
+.share-menu[hidden] { display: none; }
+.share-menu p { margin: 4px 10px 6px; font-size: 13px; color: var(--fg); }
+.share-menu p small { display: block; color: var(--muted); font-size: 12px; }
+.share-menu button { border: 0; background: none; text-align: left; padding: 9px 10px; border-radius: 9px; cursor: pointer; font-size: 14px; }
+.share-menu button:hover, .share-menu button:focus-visible { background: rgba(255,255,255,0.08); outline: none; }
+.toast {
+  position: fixed; left: 50%; bottom: 64px; z-index: 40; transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  background: var(--accent); color: #062019; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 999px;
+  transition: opacity .25s, transform .25s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 .credits-link {
-  position: fixed; right: calc(var(--panel-w) + 40px); bottom: 14px;
   border: 0; background: none; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
 }
 .credits-link:hover { color: var(--fg); }
@@ -132,7 +155,7 @@ button { font: inherit; color: inherit; }
 .trail li:last-child button { color: var(--fg); font-weight: 500; cursor: default; background: none; }
 
 .hint {
-  position: fixed; left: 20px; bottom: 16px; right: calc(var(--panel-w) + 180px);
+  position: fixed; left: 20px; bottom: 16px; right: calc(var(--panel-w) + 260px);
   color: var(--muted); font-size: 13.5px; pointer-events: none;
   transition: opacity .4s;
 }
@@ -344,11 +367,14 @@ button { font: inherit; color: inherit; }
   .wander + .wander { margin-left: 0; }
   .search { order: 4; width: 100%; margin-left: 0; }
   .trail { top: 146px; left: 16px; right: 16px; }
-  .credits-link { right: 16px; bottom: 12px; }
+  .foot-links { right: 16px; bottom: 10px; gap: 12px; }
+  .share-link { padding: 6px; }
+  .share-link span { display: none; }
+  .share-menu { right: 16px; bottom: 50px; }
   .countries { left: 16px; right: 16px; bottom: 52px; }
   /* A card covers the bottom of the screen: the hint, the country strip and the credits link hide behind it. */
-  body.card-open .hint, body.card-open .countries, body.card-open .credits-link { visibility: hidden; }
-  .hint { left: 16px; right: 132px; bottom: 12px; }
+  body.card-open .hint, body.card-open .countries, body.card-open .foot-links { visibility: hidden; }
+  .hint { left: 16px; right: 160px; bottom: 12px; }
   .panel {
     top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58vh;
     transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);

@@ -153,15 +153,19 @@ Promise.all([
   bindSearch();
   bindCredits();
   bindLightbox();
-  // A link like hummingbirds.world/?species=swbhum1 (from a species page) opens that card, and
-  // ?country=MX (from a country page) opens the map on that country.
-  // Read them first: drawing the panel resets the address to match what's open.
+  // The address holds what's on screen, so any view can be shared: ?view=status&group=Mellisugini&country=EC
+  // shows the bees of Ecuador on the Status view, and ?species=swbhum1 opens a card.
+  // Read it first: drawing the panel resets the address to match what's open.
   const params = new URLSearchParams(location.search);
   const linked = params.get("species");
+  const group = params.get("group");
+  const level = group && ["subfamily", "tribe", "genus"].find((l) => S.species.some((s) => s[l] === group));
+  if (level) S.trail.push(taxonFilter(level, group));
   const iso = (params.get("country") || "").toUpperCase();
   const hasCountry = S.species.some((s) => s.dist.some((d) => d.iso === iso));
   if (hasCountry) S.trail.push(countryFilterFor(iso));
-  setView(hasCountry ? "world" : "swarm", { first: true });
+  const view = VIEWS.includes(params.get("view")) ? params.get("view") : hasCountry ? "world" : "swarm";
+  setView(view, { first: true });
   if (linked && S.byCode[linked]) select(linked);
   $("loading").classList.add("done");
   requestAnimationFrame(frame);
@@ -1103,7 +1107,10 @@ function showTip(html, e) {
   tip.style.top = Math.min(e.clientY + 16, H - tip.offsetHeight - 8) + "px";
 }
 
+const VIEWS = ["swarm", "family", "world", "size", "status"];
+
 function bindUI() {
+  bindShare();
   document.querySelectorAll(".views button").forEach((b) => b.addEventListener("click", () => { stopWander(); setView(b.dataset.view); }));
   $("wander").addEventListener("click", () => (S.wander.on ? stopWander() : startWander()));
 
@@ -1376,7 +1383,9 @@ function renderPanel() {
   // Keep the address bar pointing at the open card, so it can be shared.
   const url = new URL(location.href);
   if (S.selected) url.searchParams.set("species", S.selected); else url.searchParams.delete("species");
-  const inCountry = countryFilter();
+  const inCountry = countryFilter(), inGroup = deepestTaxon();
+  if (S.view !== "swarm") url.searchParams.set("view", S.view); else url.searchParams.delete("view");
+  if (inGroup) url.searchParams.set("group", inGroup.value); else url.searchParams.delete("group");
   if (inCountry) url.searchParams.set("country", inCountry.iso); else url.searchParams.delete("country");
   if (url.href !== location.href) history.replaceState(null, "", url);
   // The language switch opens the same view in the other language (the Spanish page's <base> is the site root).
@@ -1584,6 +1593,119 @@ function cardHTML(s) {
 
   <p class="report">${tx("Spotted a mistake, or have a photo of this species?", "¿Encontraste un error o tienes una foto de esta especie?")} <a href="${mailto(s)}">${tx("Write to Lia", "Escríbele a Lia")}</a></p>
   `;
+}
+
+/* ---------- Share: the link to this view, or a picture of it ---------- */
+
+// "Bees · Ecuador", or "All hummingbirds", and the view it's shown in.
+function shareTitle() {
+  const parts = S.trail.filter((f) => f.type !== "all").map((f) => {
+    const clade = f.type === "taxon" && cladeOf(f.level, f.value);
+    return clade ? `${f.label} (${clade})` : f.label;
+  });
+  if (S.selected) parts.push(nameOf(S.byCode[S.selected]));
+  return parts.length ? parts.join(" · ") : tx("All hummingbirds", "Todos los colibríes");
+}
+const viewLabel = () => document.querySelector(`.views button[data-view="${S.view}"]`).textContent.trim();
+
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+async function copyLink() {
+  try { await navigator.clipboard.writeText(location.href); }
+  catch {
+    const ta = Object.assign(document.createElement("textarea"), { value: location.href });
+    document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  toast(tx("Link copied", "Enlace copiado"));
+}
+
+// The chart as it is on screen, cut to the chart area, with a title above and the site's name below.
+async function viewImage() {
+  await document.fonts.ready;
+  const R = stageRect(S.view), mobile = W <= 800;
+  let x0 = Math.max(0, R.x0 - 20), x1 = Math.min(W, R.x1 + 20);
+  let y0 = Math.max(0, R.y0 - 16), y1 = Math.min(H, mobile ? R.y1 + 8 : H - 44);
+  // Trim to what's drawn, so a small group doesn't sit in a sea of empty sky.
+  const px = ctx.getImageData(Math.round(x0 * DPR), Math.round(y0 * DPR), Math.round((x1 - x0) * DPR), Math.round((y1 - y0) * DPR));
+  let bx0 = Infinity, by0 = Infinity, bx1 = -1, by1 = -1;
+  for (let y = 0; y < px.height; y += 2) for (let x = 0; x < px.width; x += 2) {
+    if (px.data[(y * px.width + x) * 4 + 3] > 12) { bx0 = Math.min(bx0, x); bx1 = Math.max(bx1, x); by0 = Math.min(by0, y); by1 = Math.max(by1, y); }
+  }
+  if (bx1 >= 0) {
+    const m = 24, minW = Math.min(x1 - x0, 480);
+    let nx0 = x0 + bx0 / DPR - m, nx1 = x0 + bx1 / DPR + m;
+    if (nx1 - nx0 < minW) { const c = (nx0 + nx1) / 2; nx0 = c - minW / 2; nx1 = c + minW / 2; }
+    [x0, x1] = [Math.max(x0, nx0), Math.min(x1, nx1)];
+    [y0, y1] = [Math.max(y0, y0 + by0 / DPR - m), Math.min(y1, y0 + by1 / DPR + m)];
+  }
+  const w = x1 - x0, h = y1 - y0, top = 84, bottom = 52, k = Math.max(2, DPR);
+  const out = document.createElement("canvas");
+  out.width = Math.round(w * k); out.height = Math.round((h + top + bottom) * k);
+  const g = out.getContext("2d");
+  g.scale(k, k);
+  const bg = g.createRadialGradient(w * 0.4, (h + top) * 0.45, 0, w * 0.4, (h + top) * 0.45, Math.max(w, h) * 0.8);
+  bg.addColorStop(0, "#10245a"); bg.addColorStop(1, "#060f2c");
+  g.fillStyle = bg; g.fillRect(0, 0, w, h + top + bottom);
+  g.drawImage(cv, x0 * DPR, y0 * DPR, w * DPR, h * DPR, 0, top, w, h);
+  const n = S.species.filter((s) => S.trail.every((f) => matches(s, f))).length;
+  g.textBaseline = "alphabetic";
+  g.fillStyle = "#eef2ff"; g.font = `600 ${mobile ? 24 : 30}px Newsreader, Georgia, serif`;
+  g.fillText(shareTitle(), 24, 48, w - 48);
+  g.fillStyle = "#a9b8dc"; g.font = `14px "IBM Plex Sans", system-ui, sans-serif`;
+  g.fillText(`${viewLabel()} · ${ES ? plural(n, "especie", "especies") : plural(n, "species", "species")}`, 24, 72);
+  g.fillStyle = "#eef2ff"; g.font = `600 17px Newsreader, Georgia, serif`;
+  g.fillText("Hummingbirds World", 24, top + h + 32);
+  g.fillStyle = "#7fe0c4"; g.font = `14px "IBM Plex Sans", system-ui, sans-serif`;
+  g.textAlign = "right";
+  g.fillText(location.host === "hummingbirds.world" || /localhost|127\.0/.test(location.host) ? "hummingbirds.world" : location.host, w - 24, top + h + 32);
+  return new Promise((ok) => out.toBlob(ok, "image/png"));
+}
+
+async function saveImage() {
+  const blob = await viewImage();
+  const name = `hummingbirds-world-${S.view}${deepestTaxon() ? "-" + deepestTaxon().value.toLowerCase() : ""}${countryFilter() ? "-" + countryFilter().iso.toLowerCase() : ""}.png`;
+  const file = new File([blob], name, { type: "image/png" });
+  // Phones: the share sheet, which can save to Photos or post the picture straight away.
+  if (TOUCH && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); } catch { /* closed without sharing */ }
+    return;
+  }
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(tx("Image saved", "Imagen guardada"));
+}
+
+function bindShare() {
+  const btn = $("shareBtn"), menu = $("shareMenu");
+  const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!menu.hidden) return close();
+    const items = [];
+    if (TOUCH && navigator.share) items.push(["native", tx("Share link…", "Compartir enlace…")]);
+    items.push(["copy", tx("Copy link", "Copiar enlace")], ["image", tx("Save as image", "Guardar como imagen")]);
+    menu.innerHTML = `<p>${esc(shareTitle())} <small>${esc(viewLabel())}</small></p>`
+      + items.map(([act, label]) => `<button role="menuitem" data-act="${act}">${label}</button>`).join("");
+    menu.hidden = false; btn.setAttribute("aria-expanded", "true");
+    menu.querySelector("button").focus();
+  });
+  menu.addEventListener("click", async (e) => {
+    const act = e.target.closest("button")?.dataset.act;
+    if (!act) return;
+    close();
+    if (act === "native") { try { await navigator.share({ title: `${shareTitle()} · Hummingbirds World`, url: location.href }); } catch { /* closed */ } }
+    if (act === "copy") copyLink();
+    if (act === "image") saveImage();
+  });
+  document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target)) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { close(); btn.focus(); } });
 }
 
 /* ---------- Search ---------- */
