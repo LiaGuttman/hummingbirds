@@ -160,6 +160,7 @@ function resize() {
   DPR = window.devicePixelRatio || 1;
   W = innerWidth; H = innerHeight;
   cv.width = W * DPR; cv.height = H * DPR;
+  cv.style.width = `${W}px`; cv.style.height = `${H}px`;
   buildMap();
 }
 
@@ -1480,7 +1481,7 @@ function renderLightbox() {
     // large version when it has arrived. Before, the previous photo stayed on screen while the large one loaded.
     img.onerror = null;
     img.src = ph.src;
-    img.style.width = ph.w && ph.h ? `min(100%, calc((100vh - 110px) * ${(ph.w / ph.h).toFixed(4)}))` : "";
+    img.style.width = ph.w && ph.h ? `min(100%, calc((100dvh - 110px) * ${(ph.w / ph.h).toFixed(4)}))` : "";
     const big = bigSrc(ph);
     if (big !== ph.src) {
       const pre = new Image();
