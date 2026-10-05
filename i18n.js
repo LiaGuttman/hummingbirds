@@ -8,14 +8,15 @@ const tx = (en, es) => (ES ? es : en);
 // so the explorer and the species pages always use the same words.
 // Group (clade) names: Spanish has no official names for the McGuire et al. (2014) clades. Where eBird's
 // Mexican Spanish names use a group word (Ermitaño, Mango, Coqueta, Brillante, Esmeralda, Topacio) it is used;
-// Where Spanish has no such word (mountain gems, bees) the English name is kept, as Lia asked: no literal translations.
+// Where Spanish has no such word (mountain gems) the English name is kept, as Lia asked: no literal translations.
+// "abejas" for the bees: Lia found it in a Spanish hummingbird book (Oct 5).
 // Countries: Spanish (Mexico) names from the Unicode CLDR, as browsers show them.
 // IUCN categories: the IUCN's own Spanish category names.
 /* ES_DATA_START */
 const ES_DATA = {
   clade: { "Florisuginae": "topacios", "Phaethornithinae": "ermitaños", "Polytminae": "mangos",
-           "Lesbiinae": "coquetas y brillantes", "Patagoninae": "Patagona", "Trochilinae": "mountain gems, bees y esmeraldas" },
-  tribe: { "Lesbiini": "coquetas", "Heliantheini": "brillantes", "Lampornithini": "mountain gems", "Mellisugini": "bees", "Trochilini": "esmeraldas" },
+           "Lesbiinae": "coquetas y brillantes", "Patagoninae": "Patagona", "Trochilinae": "mountain gems, abejas y esmeraldas" },
+  tribe: { "Lesbiini": "coquetas", "Heliantheini": "brillantes", "Lampornithini": "mountain gems", "Mellisugini": "abejas", "Trochilini": "esmeraldas" },
   iucn: { "LC": "Preocupación menor", "NT": "Casi amenazado", "VU": "Vulnerable", "EN": "En peligro", "CR": "En peligro crítico",
           "EX": "Extinto", "DD": "Datos insuficientes", "NE": "No evaluado" },
   moves: { "Sedentary": "Se queda en su zona todo el año", "Partial migrant": "Algunas poblaciones migran", "Migratory": "Migra" },
@@ -42,7 +43,7 @@ const ES_DATA = {
       "Polytminae": "Un grupo variado que incluye a los mangos, los orejas violetas (Colibri), las hadas (Heliothryx), los picolanzas (Doryfera) y los colibríes caribeños (Eulampis). Un rasgo común son unas diminutas sierras en el borde cortante del pico; el colibrí piquidentado es el caso extremo.",
       "Lesbiinae": "Formada por dos clados, las coquetas (tribu Lesbiini) y los brillantes (tribu Heliantheini). La mayoría de sus especies vive en los Andes.",
       "Patagoninae": "Un solo género, Patagona: los colibríes gigantes, los más grandes de todos los colibríes. En 2024, científicos descubrieron que en realidad son dos especies: una del sur, que migra, y una del norte, que se queda en los Andes todo el año. La lista eBird/Clements que sigue este sitio todavía los cuenta como una sola.",
-      "Trochilinae": "Formada por tres clados: los que en inglés se llaman mountain gems y bees, y las esmeraldas. Todas las especies de colibrí que se reproducen con regularidad en Estados Unidos o Canadá pertenecen a esta subfamilia."
+      "Trochilinae": "Formada por tres clados: los que en inglés se llaman mountain gems, las abejas y las esmeraldas. Todas las especies de colibrí que se reproducen con regularidad en Estados Unidos o Canadá pertenecen a esta subfamilia."
     },
     tribe: {
       "Lesbiini": "Los machos de muchas coquetas lucen adornos vistosos: crestas, penachos, barbas, o colas muy largas o finas como alambre. Incluye a las coquetas, los rabuditos (Discosura), los silfos (Aglaiocercus), los colilargos (Lesbia), los piquicortos (Ramphomicron y Chalcostigma), las metaluras (Metallura) y Oreotrochilus.",

@@ -23,13 +23,24 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="El sitio Hummingbirds World: una parvada de las 363 especies en color, junto al título.">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<script>
+// A first visit from a browser set to Spanish opens the Spanish site. A choice made with the EN/ES button
+// is remembered and wins. Does nothing on the Spanish page itself (built from this file, with lang="es").
+(function () { try {
+  if (document.documentElement.lang !== "en") return;
+  var chosen = localStorage.getItem("hw-lang");
+  var first = ((navigator.languages && navigator.languages[0]) || navigator.language || "").toLowerCase();
+  if (chosen === "es" || (!chosen && first.slice(0, 2) === "es")) location.replace("es/" + location.search + location.hash);
+} catch (e) {} })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-04a">
+<link rel="stylesheet" href="style.css?v=2026-10-05a">
 </head>
 <body>
 <canvas id="stage" aria-label="Todas las especies de colibrí, como figuras de colores"></canvas>
@@ -118,7 +129,7 @@
     <dd><a href="https://www.birds.cornell.edu/clementschecklist/">eBird/Clements Checklist of Birds of the World</a>, a través de la API de <a href="https://ebird.org">eBird</a> (Cornell Lab of Ornithology). Los nombres en inglés y en español (México) vienen de la misma fuente; <i>Chlorostilbon melanorhynchus</i> (Western Emerald) no tiene nombre propio en la lista de México, así que se muestra con su nombre en inglés, como en eBird. Los nombres del IOC, cuando son distintos, vienen de la <a href="https://www.worldbirdnames.org/">IOC World Bird List</a> v15 (Gill, Donsker y Rasmussen, eds.).</dd>
     <dt>Subfamilias y tribus</dt>
     <dd>Dickinson, E.C. y Remsen, J.V. Jr. (eds.) 2013. <i>The Howard and Moore Complete Checklist of the Birds of the World</i>, 4.ª ed., vol. 1. Aves Press.<br>
-        McGuire, J.A. et al. 2014. <a href="https://doi.org/10.1016/j.cub.2014.03.016">Molecular phylogenetics and the diversification of hummingbirds</a>. <i>Current Biology</i> 24: 910–916. Los nombres informales de los clados siguen este artículo (en inglés: topazes, hermits, mangoes, coquettes, brilliants, Patagona, mountain gems, bees, emeralds); en español se usan las palabras de los nombres de eBird en español cuando existen (topacios, ermitaños, mangos, coquetas, brillantes, esmeraldas); si no, se deja el nombre en inglés.</dd>
+        McGuire, J.A. et al. 2014. <a href="https://doi.org/10.1016/j.cub.2014.03.016">Molecular phylogenetics and the diversification of hummingbirds</a>. <i>Current Biology</i> 24: 910–916. Los nombres informales de los clados siguen este artículo (en inglés: topazes, hermits, mangoes, coquettes, brilliants, Patagona, mountain gems, bees, emeralds); en español se usan las palabras de los nombres de eBird en español cuando existen (topacios, ermitaños, mangos, coquetas, brillantes, esmeraldas) y «abejas», como en la literatura en español sobre colibríes; si no, se deja el nombre en inglés.</dd>
     <dt>Países</dt>
     <dd>Listas por país de <a href="https://datazone.birdlife.org/">BirdLife International DataZone</a>, comparadas con los registros de eBird del <a href="https://www.gbif.org/dataset/4fa7b334-ce0d-4e88-aaae-2e0c138d049e">eBird Observation Dataset</a> (Cornell Lab of Ornithology, CC BY 4.0), consultado a través de la API de GBIF.org. Seis especies raras usan áreas de distribución de la literatura publicada.</dd>
     <dt>Peso, pico, hábitat y movimientos</dt>
@@ -156,12 +167,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-04a"></script>
-<script src="traits.js?v=2026-10-04a"></script>
-<script src="i18n.js?v=2026-10-04a"></script>
-<script src="app.js?v=2026-10-04a"></script>
-<script src="anatomy.js?v=2026-10-04a"></script>
-<script src="comet.js?v=2026-10-04a"></script>
+<script src="geo.js?v=2026-10-05a"></script>
+<script src="traits.js?v=2026-10-05a"></script>
+<script src="i18n.js?v=2026-10-05a"></script>
+<script src="app.js?v=2026-10-05a"></script>
+<script src="anatomy.js?v=2026-10-05a"></script>
+<script src="comet.js?v=2026-10-05a"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

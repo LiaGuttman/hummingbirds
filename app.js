@@ -1390,6 +1390,11 @@ function renderPanel() {
   if (url.href !== location.href) history.replaceState(null, "", url);
   // The language switch opens the same view in the other language (the Spanish page's <base> is the site root).
   const lang = $("langBtn");
+  if (lang && !lang.dataset.bound) {
+    // Remember the choice, so a Spanish-language browser isn't sent back to Spanish after choosing English.
+    lang.addEventListener("click", () => { try { localStorage.setItem("hw-lang", ES ? "en" : "es"); } catch { /* private mode */ } });
+    lang.dataset.bound = "1";
+  }
   if (lang) lang.href = (ES ? "./" : "es/") + url.search;
   p.classList.toggle("open", !!S.selected);
   document.body.classList.toggle("card-open", !!S.selected);

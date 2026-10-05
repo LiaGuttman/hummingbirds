@@ -20,13 +20,24 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Hummingbirds site: a flock of all 363 species in color, next to the title.">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<script>
+// A first visit from a browser set to Spanish opens the Spanish site. A choice made with the EN/ES button
+// is remembered and wins. Does nothing on the Spanish page itself (built from this file, with lang="es").
+(function () { try {
+  if (document.documentElement.lang !== "en") return;
+  var chosen = localStorage.getItem("hw-lang");
+  var first = ((navigator.languages && navigator.languages[0]) || navigator.language || "").toLowerCase();
+  if (chosen === "es" || (!chosen && first.slice(0, 2) === "es")) location.replace("es/" + location.search + location.hash);
+} catch (e) {} })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-04a">
+<link rel="stylesheet" href="style.css?v=2026-10-05a">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -152,12 +163,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-04a"></script>
-<script src="traits.js?v=2026-10-04a"></script>
-<script src="i18n.js?v=2026-10-04a"></script>
-<script src="app.js?v=2026-10-04a"></script>
-<script src="anatomy.js?v=2026-10-04a"></script>
-<script src="comet.js?v=2026-10-04a"></script>
+<script src="geo.js?v=2026-10-05a"></script>
+<script src="traits.js?v=2026-10-05a"></script>
+<script src="i18n.js?v=2026-10-05a"></script>
+<script src="app.js?v=2026-10-05a"></script>
+<script src="anatomy.js?v=2026-10-05a"></script>
+<script src="comet.js?v=2026-10-05a"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
