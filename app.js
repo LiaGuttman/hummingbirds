@@ -1399,6 +1399,9 @@ function renderPanel() {
   p.classList.toggle("open", !!S.selected);
   document.body.classList.toggle("card-open", !!S.selected);
   cardCanvas = null;
+  // A different bird, group or country starts at the top of the panel, not halfway down the last one.
+  const shown = [S.selected, inGroup && inGroup.value, inCountry && inCountry.iso].join("|");
+  if (shown !== renderPanel.shown) { renderPanel.shown = shown; requestAnimationFrame(() => { p.scrollTop = 0; }); }
   if (S.selected) { p.innerHTML = cardHTML(S.byCode[S.selected]); cardCanvas = p.querySelector(".swatch canvas"); return; }
 
   const active = S.species.filter((s) => S.active.has(s.code));
@@ -1566,10 +1569,10 @@ function cardHTML(s) {
   return `
   <div class="hero"><button class="close" data-act="close" aria-label="${tx("Close", "Cerrar")}">×</button>${photoHTML(s)}</div>
   ${S.wander.on && S.wander.note ? `<p class="wandernote">${esc(S.wander.note)}</p>` : ""}
-  <h2>${esc(nameOf(s))}</h2>
+  <h2><a class="titlelink" href="${pageOf(s)}" title="${tx("Open the species page", "Abrir la página de la especie")}">${esc(nameOf(s))}<svg class="info" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg></a></h2>
   <div class="sci big">${esc(s.sci)}</div>
   <div class="es">${ES ? "Inglés: " : ""}${esc(otherName(s))}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="${pageOf(s)}">${tx("Species page", "Página de la especie")}</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
+  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
 
   <h3>${tx("At a glance", "De un vistazo")}</h3>
   <dl class="facts">
@@ -1580,6 +1583,9 @@ function cardHTML(s) {
     <dt>${tx("Status", "Estado")}</dt><dd><span class="status" style="--st:${statusColor(s.iucn)}">${esc(IUCN[s.iucn] || s.iucn)}</span>${s.trend && s.trend !== "Unknown" ? `, ${esc(trendName(s.trend))}` : ""}${statusNote(s)}</dd>
   </dl>
 
+  <h3>${tx("Where it lives", "Dónde vive")} · ${ES ? plural(s.dist.length, "país", "países") : plural(s.dist.length, "country", "countries")}</h3>
+  <div class="chips">${dist.map((d) => `<button class="chip" data-act="country" data-iso="${d.iso}">${esc(shortCountry(d.c))}${order(d) ? ` <small>${esc(presenceName(d.st))}</small>` : ""}</button>`).join("")}</div>
+
   <h3>${tx("Its place in the family", "Su lugar en la familia")}</h3>
   <div class="places">
     ${placeRow("subfamily", s.subfamily, SUB[s.subfamily].clade)}
@@ -1587,9 +1593,6 @@ function cardHTML(s) {
     ${placeRow("genus", s.genus, cladeOf("genus", s.genus))}
   </div>
   ${genusNote ? `<p class="note"><b>${tx(`What <i>${esc(s.genus)}</i> share:`, `Lo que tienen en común los <i>${esc(s.genus)}</i>:`)}</b> ${esc(genusNote)}</p>` : ""}
-
-  <h3>${tx("Where it lives", "Dónde vive")} · ${ES ? plural(s.dist.length, "país", "países") : plural(s.dist.length, "country", "countries")}</h3>
-  <div class="chips">${dist.map((d) => `<button class="chip" data-act="country" data-iso="${d.iso}">${esc(shortCountry(d.c))}${order(d) ? ` <small>${esc(presenceName(d.st))}</small>` : ""}</button>`).join("")}</div>
 
   <h3>${relTitle}</h3>
   ${birdChips(rel) || `<p class="empty">${tx("None.", "Ninguno.")}</p>`}

@@ -185,6 +185,9 @@ button { font: inherit; color: inherit; }
   scrollbar-width: thin;
 }
 .panel h2 { font: 600 30px/1.1 var(--display); margin: 0 0 6px; }
+.panel h2 .titlelink { color: inherit; text-decoration: none; }
+.panel h2 .titlelink:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.panel h2 .info { width: 0.6em; height: 0.6em; margin-left: 0.3em; vertical-align: 0.12em; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; }
 .panel h2.sci { font-style: italic; color: var(--fg); font-size: 32px; }
 .kicker { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
 .panel h3 {
