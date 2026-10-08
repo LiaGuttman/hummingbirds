@@ -5,19 +5,19 @@
 
 const NOTES = {
   subfamily: {
-    Florisuginae: "The earliest branch to split from all other living hummingbirds. Two genera: the topazes (Topaza) and the jacobins (Florisuga).",
-    Phaethornithinae: "Hermits are mostly dull green, brown and rufous rather than glittering. Many have long, down-curved bills and long central tail feathers. Most live in the shady forest understory. Instead of guarding a patch of flowers, they fly a regular route between flowers spread through the forest (trap-lining). Males gather in groups called leks, where each sings to attract females.",
-    Polytminae: "A varied group that includes the mangoes, violetears, fairies, lancebills and caribs. A common feature is tiny serrations on the cutting edge of the bill; the Tooth-billed Hummingbird is the extreme example.",
-    Lesbiinae: "Made up of two clades, the coquettes (tribe Lesbiini) and the brilliants (tribe Heliantheini). Most of its species live in the Andes.",
-    Patagoninae: "A single genus, Patagona: the giant hummingbirds, the largest of all hummingbirds. In 2024 scientists found it is really two species: the Southern Giant Hummingbird, which migrates, and the Northern Giant Hummingbird, which stays in the Andes all year. The eBird/Clements list this site follows still counts them as one.",
-    Trochilinae: "Made up of three clades: the mountain gems, the bees and the emeralds. Every hummingbird species that regularly breeds in the United States or Canada belongs to this subfamily."
+    Florisuginae: "The earliest branch to split from all other living hummingbirds. Two genera: the topazes (Topaza) and the jacobins (Florisuga). The name comes from the genus Florisuga, Latin for \"flower-sucker\" (flos, flower, and sugere, to suck).",
+    Phaethornithinae: "Hermits are mostly dull green, brown and rufous rather than glittering. Many have long, down-curved bills and long central tail feathers. Most live in the shady forest understory. Instead of guarding a patch of flowers, they fly a regular route between flowers spread through the forest (trap-lining). Males gather in groups called leks, where each sings to attract females. The name comes from the genus Phaethornis, Greek for \"sun bird\" (Phaethon, the shining one, and ornis, bird).",
+    Polytminae: "A varied group that includes the mangoes, violetears, fairies, lancebills and caribs. A common feature is tiny serrations on the cutting edge of the bill; the Tooth-billed Hummingbird is the extreme example. The name comes from the genus Polytmus, from a Greek word meaning \"very precious\".",
+    Lesbiinae: "Made up of two clades, the coquettes (tribe Lesbiini) and the brilliants (tribe Heliantheini). Most of its species live in the Andes. The name comes from the genus Lesbia, the name the Roman poet Catullus gave to the woman in his love poems.",
+    Patagoninae: "A single genus, Patagona: the giant hummingbirds, the largest of all hummingbirds. In 2024 scientists found it is really two species: the Southern Giant Hummingbird, which migrates, and the Northern Giant Hummingbird, which stays in the Andes all year. The eBird/Clements list this site follows still counts them as one. The name means \"of Patagonia\", the region at the southern tip of South America.",
+    Trochilinae: "Made up of three clades: the mountain gems, the bees and the emeralds. Every hummingbird species that regularly breeds in the United States or Canada belongs to this subfamily. The name comes from the genus Trochilus, from trochilos, a small bird in ancient Greek writings that was said to pick food from crocodiles' teeth. The whole family, Trochilidae, is named after it too."
   },
   tribe: {
-    Lesbiini: "Males of many coquettes carry showy ornaments: crests, tufts, beards, or very long or wire-thin tails. Includes the coquettes, thorntails, sylphs, trainbearers, thornbills, metaltails and hillstars.",
-    Heliantheini: "Mostly medium to large birds of Andean forests. Includes the incas, starfrontlets, coronets, pufflegs, sunbeams, brilliants and the Sword-billed Hummingbird.",
-    Lampornithini: "Fairly large hummingbirds, mostly of mountain forests in Mexico and Central America.",
-    Mellisugini: "Mostly very small birds. In many species the males make sounds with their tail feathers during display dives. Includes the woodstars and the Bee Hummingbird.",
-    Trochilini: "The largest tribe. Mostly green birds, many with glittering blue or violet, living in lowlands and foothills."
+    Lesbiini: "Males of many coquettes carry showy ornaments: crests, tufts, beards, or very long or wire-thin tails. Includes the coquettes, thorntails, sylphs, trainbearers, thornbills, metaltails and hillstars. Like its subfamily, the tribe is named after the genus Lesbia, the name the Roman poet Catullus gave to the woman in his love poems.",
+    Heliantheini: "Mostly medium to large birds of Andean forests. Includes the incas, starfrontlets, coronets, pufflegs, sunbeams, brilliants and the Sword-billed Hummingbird. The name comes from Helianthea, an old genus name meaning \"sunflower\" (Greek helios, sun, and anthos, flower).",
+    Lampornithini: "Fairly large hummingbirds, mostly of mountain forests in Mexico and Central America. The name comes from the genus Lampornis, Greek for \"torch bird\" or \"shining bird\" (lampas, torch, and ornis, bird).",
+    Mellisugini: "Mostly very small birds. In many species the males make sounds with their tail feathers during display dives. Includes the woodstars and the Bee Hummingbird. The name comes from the genus Mellisuga, Latin for \"honey-sucker\" (mel, honey, and sugere, to suck).",
+    Trochilini: "The largest tribe. Mostly green birds, many with glittering blue or violet, living in lowlands and foothills. Like its subfamily, the tribe is named after the genus Trochilus, from trochilos, a small bird in ancient Greek writings."
   },
   genus: {
     Topaza: "Males have two spectacular, very long central tail feathers that cross over each other.",
