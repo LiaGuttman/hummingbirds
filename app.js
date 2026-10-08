@@ -780,16 +780,32 @@ function drawBird(c, s, x, y, r, a, h, flap, now) {
   const gx = Math.cos(ang) * r * 1.1, gy = Math.sin(ang) * r * 1.1;
   const grad = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
   grad.addColorStop(0, c1); grad.addColorStop(0.5, c2); grad.addColorStop(1, c1);
+  if (r > 1.5) wing(c, s, x, y, r, a * 0.45, ch, sh, flap, now, 0.4);
   c.fillStyle = grad;
   c.beginPath(); c.ellipse(x, y, r * 1.12, r * 0.88, h, 0, Math.PI * 2);
   if (s.extinct) { c.globalAlpha = a * 0.25; c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
   else c.fill();
+  if (r > 1.5) wing(c, s, x, y, r, a * 0.8, ch, sh, flap, now, 0);
   // Glint
   if (r > 2.5) {
     c.fillStyle = "rgba(255,255,255,0.55)";
     c.beginPath(); c.arc(x + ch * r * 0.35 + sh * r * 0.3, y + sh * r * 0.35 - ch * r * 0.3, r * 0.18, 0, Math.PI * 2); c.fill();
   }
   c.globalAlpha = 1;
+}
+
+// One wing, rooted on the back just behind the head. At rest it lies folded along the back toward
+// the tail; in flight it rises and beats. `lag` sets the far wing a little behind the near one.
+function wing(c, s, x, y, r, a, ch, sh, flap, now, lag) {
+  const ux = sh, uy = -ch, bx = -ch, by = -sh;   // "up" (the back) and "back" (toward the tail)
+  const beat = Math.sin(now * 0.05 + s._ph);
+  const t = 1.25 * (1 - flap) + (0.35 + 0.45 * beat) * flap + lag;
+  const dx = ux * Math.cos(t) + bx * Math.sin(t), dy = uy * Math.cos(t) + by * Math.sin(t);
+  const len = r * 1.5;
+  const rx = x + ch * r * 0.15 + ux * r * 0.55, ry = y + sh * r * 0.15 + uy * r * 0.55;
+  c.globalAlpha = a;
+  c.fillStyle = "rgba(235,240,245,0.85)";
+  c.beginPath(); c.ellipse(rx + dx * len * 0.5, ry + dy * len * 0.5, len * 0.5, r * 0.3, Math.atan2(dy, dx), 0, Math.PI * 2); c.fill();
 }
 
 function drawMap() {

@@ -19,7 +19,7 @@
     },
     {
       id: "tongue", name: "Tongue", pos: "-174 153 72", normal: "0.12 0.71 0.69",
-      kids: "The tongue hides inside the bill. Its tip splits in two, like a snake's tongue. When it touches nectar, tiny fringes open up, catch the nectar and pull it into the mouth.",
+      kids: "The tongue hides inside the bill. Its tip splits in two, like a snake's tongue. It works like a mop: when it touches nectar, tiny fringes called lamellae open up, catch the nectar and pull it into the mouth.",
       wow: "Scientists once thought the tongue sucked nectar up like a straw. High-speed videos of 30 kinds of hummingbirds showed it works like a little trap instead.",
       sources: [["Rico-Guevara and Rubega, 2011 (UConn Today)", "https://today.uconn.edu/2011/05/uconn-researchers-debunk-hummingbird-theory"]]
     },
@@ -40,7 +40,7 @@
     {
       id: "heart", name: "Heart", pos: "-47.24 68.35 86.11", normal: "-0.25 -0.19 0.95",
       kids: "A hummingbird's heart is huge for its size: between 2 and 5% of its whole body weight. In people and other primates it's only about 0.5%. A big, fast heart gives the bird all the oxygen it needs. Even at rest it beats 500 to 600 times a minute.",
-      wow: "The heart of a Blue-throated Mountain-gem was once measured beating 1,260 times a minute: 21 beats every second! But at night, or when it's too cold to find food, a hummingbird can go into a sleep-like state called torpor, and its heart slows to fewer than 50 beats a minute.",
+      wow: "The hearts of the Blue-throated Mountain-gem (about 8.5 g) and Rivoli's Hummingbird (about 8 g, once called the Magnificent Hummingbird) have been measured beating up to about 1,260 times a minute: 21 beats every second! But at night, or when it's too cold to find food, a hummingbird can go into a sleep-like state called torpor, and its heart slows to fewer than 50 beats a minute.",
       meet: [["buthum", "Blue-throated Mountain-gem, 1,260 beats a minute"]],
       sources: [["Heart, Musée de la nature et des sciences (Virtual Museum of Canada)", "https://colibri-hummingbird.mns2.ca/En/Hummingbird/The-Life-Of-The-Hummingbird/Internal-Morphology/a-bird-with-a-big-heart.html"], ["Journey North, \"Surviving Cold Temperatures\"", "https://archive.journeynorth.org/hummingbirds/resources/article/surviving-cold-temperatures.html"]]
     },
@@ -83,7 +83,7 @@
       see: "Los picos van de 11 mm a 97 mm. Conoce al más corto y al más largo:",
       meet: ["Colibrí Piquicorto Común, 11 mm", "Colibrí Picoespada, 97 mm"] },
     tongue: { name: "Lengua",
-      kids: "La lengua se esconde dentro del pico. Su punta se divide en dos, como la lengua de una serpiente. Cuando toca el néctar, unos flecos diminutos se abren, atrapan el néctar y lo llevan a la boca.",
+      kids: "La lengua se esconde dentro del pico, largo y fino. Su punta se divide en dos, como la lengua de una serpiente, y funciona como una mopa: cuando toca el néctar de las flores, unas pequeñas estructuras llamadas lamelas se abren para capturarlo y llevarlo a la boca.",
       wow: "Los científicos pensaban que la lengua chupaba el néctar como un popote. Videos de alta velocidad de 30 tipos de colibríes mostraron que en realidad funciona como una pequeña trampa." },
     eye: { name: "Ojo",
       kids: "Los colibríes ven colores que ni siquiera podemos imaginar. Pueden ver la luz ultravioleta, y mezclas como ultravioleta con verde. Eso les ayuda a encontrar flores.",
@@ -95,7 +95,7 @@
       meet: ["Colibrí Garganta Rubí", "Colibrí Cabeza Roja"] },
     heart: { name: "Corazón",
       kids: "El corazón del colibrí es enorme para su tamaño: pesa entre el 2 y el 5% de todo su cuerpo. En las personas y otros primates es apenas el 0.5%. Un corazón grande y rápido le da al ave todo el oxígeno que necesita. Aun en reposo, late de 500 a 600 veces por minuto.",
-      wow: "Una vez se midió el corazón de un Colibrí Garganta Azul latiendo 1,260 veces por minuto: ¡21 latidos cada segundo! Pero de noche, o cuando hace demasiado frío para encontrar comida, el colibrí puede entrar en un estado parecido al sueño llamado torpor, y su corazón baja a menos de 50 latidos por minuto.",
+      wow: "Se ha medido el corazón del Colibrí Garganta Azul (unos 8.5 g) y del Colibrí Magnífico (unos 8 g) latiendo hasta unas 1,260 veces por minuto: ¡21 latidos cada segundo! Pero de noche, o cuando hace demasiado frío para encontrar comida, el colibrí puede entrar en un estado parecido al sueño llamado torpor, y su corazón baja a menos de 50 latidos por minuto.",
       meet: ["Colibrí Garganta Azul, 1,260 latidos por minuto"] },
     feathers: { name: "Plumas",
       kids: "Las plumas mantienen caliente al colibrí, le ayudan a volar y le dan sus colores. Los verdes, azules y rojos brillantes no vienen de ningún pigmento: unas formas diminutas en las plumas rebotan la luz de una manera especial. A esto se le llama color estructural, y cuando el color cambia al moverte se llama iridiscencia.",
