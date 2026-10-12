@@ -701,7 +701,6 @@ function frame(now) {
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  ctx.setTransform(DPR * U.k, 0, 0, DPR * U.k, DPR * U.x, DPR * U.y);
   if (M.alpha > 0.01) drawMap();
 
   const decoA = clamp((now - S.decoT0 - 600) / 600, 0, 1);
@@ -730,11 +729,16 @@ function frame(now) {
     g.flap += (clamp(speed / 2.5, 0, 1) - g.flap) * 0.15;
   }
 
+  // Where each bird shows on screen under the reader's zoom: the flock spreads out with the map,
+  // but the birds themselves grow only a little, so zooming in separates them instead of enlarging them.
+  const zr = Math.pow(U.k, 0.4);
+  for (const s of S.species) { const g = s.g; g.px = g.sx * U.k + U.x; g.py = g.sy * U.k + U.y; g.pr = g.r * zr; }
+
   for (const s of S.species) {
     const g = s.g;
     if (g.a < 0.01) continue;
     const grow = s.code === S.hover ? 1.35 : 1;
-    drawBird(ctx, s, g.sx, g.sy, g.r * grow, g.a, g.heading, g.flap, now);
+    drawBird(ctx, s, g.px, g.py, g.pr * grow, g.a, g.heading, g.flap, now);
   }
 
   if (S.deco?.kind === "family") drawClusterLabels(decoA);
@@ -744,14 +748,14 @@ function frame(now) {
   drawWanderPath();
 
   const hv = S.hover && S.byCode[S.hover].g;
-  if (hv) ring(hv.sx, hv.sy, hv.r * 1.35 + 5, "rgba(255,255,255,0.9)", 1.5);
+  if (hv) ring(hv.px, hv.py, hv.pr * 1.35 + 5, "rgba(255,255,255,0.9)", 1.5);
   const pk = S.peek && S.byCode[S.peek].g;
-  if (pk) ring(pk.sx, pk.sy, pk.r + 6, "rgba(127,224,196,0.95)", 2);
+  if (pk) ring(pk.px, pk.py, pk.pr + 6, "rgba(127,224,196,0.95)", 2);
   const sel = S.selected && S.byCode[S.selected].g;
   if (sel) {
     const pulse = 1 + Math.sin(now * 0.004) * 0.15;
-    ring(sel.sx, sel.sy, (sel.r + 7) * pulse, "rgba(255,255,255,0.95)", 2);
-    ring(sel.sx, sel.sy, (sel.r + 13) * pulse, "rgba(255,255,255,0.25)", 1);
+    ring(sel.px, sel.py, (sel.pr + 7) * pulse, "rgba(255,255,255,0.95)", 2);
+    ring(sel.px, sel.py, (sel.pr + 13) * pulse, "rgba(255,255,255,0.25)", 1);
   }
 
   drawCardBird(now);
@@ -859,7 +863,7 @@ function drawCountryLabels() {
       // whether or not the pointer is over that country.
       let ly = y - 12;
       if (chosen) {
-        const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? U.applyY(s.g.sy - s.g.r) : null));
+        const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? s.g.py - s.g.pr : null));
         ly = Math.max(stageRect("world").y0 + 4, Math.min(y, top ?? y) - 16);
       }
       pill(`${name} · ${counts[iso]} ${tx("species", "especies")}`, x, ly);
@@ -1051,8 +1055,8 @@ function drawWanderPath() {
     const a = S.byCode[p[i - 1]].g, b = S.byCode[p[i]].g;
     ctx.globalAlpha = 0.15 + 0.6 * (i / (p.length - 1));
     ctx.strokeStyle = "#7fe0c4";
-    const mx = (a.sx + b.sx) / 2 - (b.sy - a.sy) * 0.2, my = (a.sy + b.sy) / 2 + (b.sx - a.sx) * 0.2;
-    ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.quadraticCurveTo(mx, my, b.sx, b.sy); ctx.stroke();
+    const mx = (a.px + b.px) / 2 - (b.py - a.py) * 0.2, my = (a.py + b.py) / 2 + (b.px - a.px) * 0.2;
+    ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.quadraticCurveTo(mx, my, b.px, b.py); ctx.stroke();
   }
   ctx.globalAlpha = 1;
 }
@@ -1081,9 +1085,9 @@ function birdAt(x, y) {
   for (const s of S.species) {
     const g = s.g;
     if (g.a < 0.3) continue;
-    const d = Math.hypot(g.sx - x, g.sy - y);
+    const d = Math.hypot(g.px - x, g.py - y);
     nearest = Math.min(nearest, d);
-    if (d < Math.max(g.r * 1.3, 7) + 3 && d < bd) { best = s; bd = d; }
+    if (d < Math.max(g.pr * 1.3, 7) + 3 && d < bd) { best = s; bd = d; }
   }
   S.near = nearest < 70;
   return best;
@@ -1144,8 +1148,9 @@ function bindUI() {
   // Birds keep moving under a still pointer, so hover is re-checked a few times a second.
   setInterval(() => { if (S.pointer) hoverAt(S.pointer); }, 120);
   cv.addEventListener("click", (e) => {
+    // Birds are found where they show on screen; groups and countries in the map's own coordinates.
     const [x, y] = U.invert([e.clientX, e.clientY]);
-    const s = birdAt(x, y);
+    const s = birdAt(e.clientX, e.clientY);
     if (s) { stopWander(); select(s.code); return; }
     const c = clusterAt(x, y);
     if (c) { stopWander(); S.hoverCluster = null; $("tip").hidden = true; pushFilter(taxonFilter(c.level, c.value)); return; }
@@ -1159,7 +1164,7 @@ function bindUI() {
 
 function hoverAt(e) {
   const [x, y] = U.invert([e.clientX, e.clientY]);
-  const s = birdAt(x, y);
+  const s = birdAt(e.clientX, e.clientY);
   S.hover = s ? s.code : null;
   S.hoverCluster = s ? null : clusterAt(x, y);
   S.hoverCountry = s ? null : countryAt(x, y);
