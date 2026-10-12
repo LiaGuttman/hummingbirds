@@ -171,6 +171,18 @@ Promise.all([
   requestAnimationFrame(frame);
 });
 
+// The reader's own zoom on the map (pinch, scroll or drag), on top of everything the layout placed.
+// It resets whenever the view or the trail changes.
+let U = d3.zoomIdentity;
+let zoomer = null;
+function bindZoom() {
+  zoomer = d3.zoom().scaleExtent([1, 8])
+    .filter((e) => S.view === "world" && (!e.ctrlKey || e.type === "wheel") && !e.button)
+    .on("zoom", (e) => { U = e.transform; $("tip").hidden = true; });
+  d3.select(cv).call(zoomer).on("dblclick.zoom", null);
+}
+const resetZoom = () => { if (zoomer) { zoomer.translateExtent([[0, 0], [W, H]]); d3.select(cv).call(zoomer.transform, d3.zoomIdentity); } U = d3.zoomIdentity; };
+
 function resize() {
   DPR = window.devicePixelRatio || 1;
   W = innerWidth; H = innerHeight;
@@ -269,6 +281,7 @@ function setView(v, opts = {}) {
   $("hint").textContent = !TOUCH ? HINTS[v] : ES
     ? HINTS[v].replace("Pasa el cursor sobre una para conocerla y haz clic para abrir su ficha", "Toca una para abrir su ficha").replace(/Haz clic en/g, "Toca")
     : HINTS[v].replace("Hover to meet one, click to open its card", "Tap one to open its card").replace(/\bClick\b/g, "Tap");
+  if (v === "world") $("hint").textContent += TOUCH ? tx(" Pinch to zoom.", " Pellizca para hacer zoom.") : tx(" Scroll to zoom.", " Usa la rueda del mouse para hacer zoom.");
   relayout(opts);
   renderTrail(); renderPanel(); renderCountries();
 }
@@ -305,6 +318,7 @@ function relayout(opts = {}) {
   S.rot = 0;
 
   // Map transform: zoom in on a chosen country, otherwise show the whole Americas.
+  resetZoom();
   M.tFrom = { ...M.t }; M.tT0 = now;
   M.tTo = out.transform || { k: 1, x: 0, y: 0 };
   renderCountries();
@@ -559,7 +573,9 @@ function layoutWorld(active, R) {
     transform = { k, x: R.cx - k * (bx0 + bx1) / 2, y: R.cy - k * (by0 + by1) / 2 };
   }
   const toScreen = (p) => ({ x: p.x * transform.k + transform.x, y: p.y * transform.k + transform.y });
-  const base = clamp(Math.min(R.w, R.h) / 150, 2.6, 5.5) * (cf ? 1.5 : 1);
+  // A chosen country's birds are sized to the room there is, so a phone shows them at a readable size.
+  const base0 = clamp(Math.min(R.w, R.h) / 150, 2.6, 5.5);
+  const base = cf ? clamp(Math.sqrt((R.w * R.h * 0.08) / (Math.PI * Math.max(active.length, 1))), base0 * 1.5, 9) : base0;
 
   const nodes = active.map((s) => {
     const home = cf ? toScreen(M.anchors[cf.iso]) : toScreen(homePoint(s));
@@ -685,6 +701,7 @@ function frame(now) {
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, W, H);
+  ctx.setTransform(DPR * U.k, 0, 0, DPR * U.k, DPR * U.x, DPR * U.y);
   if (M.alpha > 0.01) drawMap();
 
   const decoA = clamp((now - S.decoT0 - 600) / 600, 0, 1);
@@ -793,7 +810,7 @@ function drawBird(c, s, x, y, r, a, h, flap, now) {
 }
 
 function drawMap() {
-  const { k, x, y } = M.t;
+  const k = M.t.k * U.k, x = M.t.x * U.k + U.x, y = M.t.y * U.k + U.y;
   const cf = countryFilter();
   const counts = countryCounts();
   const max = d3.max(Object.values(counts)) || 1;
@@ -819,12 +836,15 @@ function drawMap() {
   ctx.restore();
 }
 
+// Drawn without the reader's zoom, at the zoomed positions, so labels keep their size.
 function drawCountryLabels() {
   const cf = countryFilter();
   const counts = countryCounts();
+  ctx.save();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   for (const [iso, a] of Object.entries(M.anchors)) {
     if (!counts[iso]) continue;
-    const x = a.x * M.t.k + M.t.x, y = a.y * M.t.k + M.t.y;
+    const [x, y] = U.apply([a.x * M.t.k + M.t.x, a.y * M.t.k + M.t.y]);
     const hot = iso === S.hoverCountry;
     // Territories with no polygon of their own get a small dot to click.
     if (!M.byIso[iso] || hot) {
@@ -839,12 +859,13 @@ function drawCountryLabels() {
       // whether or not the pointer is over that country.
       let ly = y - 12;
       if (chosen) {
-        const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? s.g.sy - s.g.r : null));
+        const top = d3.min(S.species, (s) => (S.active.has(s.code) && s.g.a > 0.3 ? U.applyY(s.g.sy - s.g.r) : null));
         ly = Math.max(stageRect("world").y0 + 4, Math.min(y, top ?? y) - 16);
       }
       pill(`${name} · ${counts[iso]} ${tx("species", "especies")}`, x, ly);
     }
   }
+  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
@@ -1123,22 +1144,25 @@ function bindUI() {
   // Birds keep moving under a still pointer, so hover is re-checked a few times a second.
   setInterval(() => { if (S.pointer) hoverAt(S.pointer); }, 120);
   cv.addEventListener("click", (e) => {
-    const s = birdAt(e.clientX, e.clientY);
+    const [x, y] = U.invert([e.clientX, e.clientY]);
+    const s = birdAt(x, y);
     if (s) { stopWander(); select(s.code); return; }
-    const c = clusterAt(e.clientX, e.clientY);
+    const c = clusterAt(x, y);
     if (c) { stopWander(); S.hoverCluster = null; $("tip").hidden = true; pushFilter(taxonFilter(c.level, c.value)); return; }
-    const iso = countryAt(e.clientX, e.clientY);
+    const iso = countryAt(x, y);
     if (iso) { stopWander(); S.hoverCountry = null; pushFilter(countryFilterFor(iso)); return; }
-    if (S.selected) { S.selected = null; renderPanel(); }
+    if (S.selected || S.sheet) { S.selected = null; S.sheet = false; renderPanel(); }
   });
+  bindZoom();
   bindPanels();
 }
 
 function hoverAt(e) {
-  const s = birdAt(e.clientX, e.clientY);
+  const [x, y] = U.invert([e.clientX, e.clientY]);
+  const s = birdAt(x, y);
   S.hover = s ? s.code : null;
-  S.hoverCluster = s ? null : clusterAt(e.clientX, e.clientY);
-  S.hoverCountry = s ? null : countryAt(e.clientX, e.clientY);
+  S.hoverCluster = s ? null : clusterAt(x, y);
+  S.hoverCountry = s ? null : countryAt(x, y);
   cv.style.cursor = s || S.hoverCluster || S.hoverCountry ? "pointer" : "default";
   if (s) {
     const cf = countryFilter();
@@ -1157,6 +1181,7 @@ function bindPanels() {
     const b = e.target.closest("button[data-i]"); if (!b) return;
     stopWander(); popTo(+b.dataset.i);
   });
+  $("sheetBtn").addEventListener("click", () => { stopWander(); S.sheet = true; renderPanel(); });
   $("countries").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-iso]"); if (!b) return;
     stopWander(); pushFilter(countryFilterFor(b.dataset.iso));
@@ -1167,7 +1192,8 @@ function bindPanels() {
     const t = e.target.closest("[data-act]"); if (!t) return;
     const act = t.dataset.act;
     if (act !== "photo" && act !== "zoom") stopWander();
-    if (act === "close") { S.selected = null; renderPanel(); }
+    // Closing a card opened from the phone's list goes back to the list.
+    if (act === "close") { if (S.selected) S.selected = null; else S.sheet = false; renderPanel(); }
     else if (act === "bird") { S.peek = null; select(t.dataset.code); }
     else if (act === "pop") popTo(+t.dataset.i);
     else if (act === "photo") stepPhoto(+t.dataset.step);
@@ -1181,7 +1207,7 @@ function bindPanels() {
   addEventListener("keydown", (e) => {
     // While the photo viewer or another dialog is open it handles its own keys (Esc closes only that).
     if (document.querySelector("dialog[open]")) return;
-    if (e.key === "Escape") { stopWander(); S.selected = null; renderPanel(); }
+    if (e.key === "Escape") { stopWander(); S.selected = null; S.sheet = false; renderPanel(); }
     // Left/right arrows flip through a species' photos, unless the user is typing.
     if (S.selected && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) stepPhoto(e.key === "ArrowLeft" ? -1 : 1);
   });
@@ -1396,8 +1422,10 @@ function renderPanel() {
     lang.dataset.bound = "1";
   }
   if (lang) lang.href = (ES ? "./" : "es/") + url.search;
-  p.classList.toggle("open", !!S.selected);
-  document.body.classList.toggle("card-open", !!S.selected);
+  // Phones: the panel opens for a species, or for the group or country when its button is tapped.
+  p.classList.toggle("open", !!S.selected || !!S.sheet);
+  document.body.classList.toggle("card-open", !!S.selected || !!S.sheet);
+  $("sheetBtn").innerHTML = `${ES ? plural(S.active.size, "especie", "especies") : plural(S.active.size, "species", "species")} <span aria-hidden="true">▴</span>`;
   cardCanvas = null;
   // A different bird, group or country starts at the top of the panel, not halfway down the last one.
   const shown = [S.selected, inGroup && inGroup.value, inCountry && inCountry.iso].join("|");
@@ -1407,7 +1435,7 @@ function renderPanel() {
   const active = S.species.filter((s) => S.active.has(s.code));
   const cf = countryFilter();
   const tf = deepestTaxon();
-  let html = "";
+  let html = `<button class="close sheet-close" data-act="close" aria-label="${tx("Close", "Cerrar")}">×</button>`;
   if (tf) {
     html += `<div class="kicker">${RANK[tf.level]}</div><h2 class="sci">${esc(tf.value)}</h2>`;
     const clade = cladeOf(tf.level, tf.value);
@@ -1442,6 +1470,12 @@ function renderPanel() {
       `<button data-act="taxon" data-level="${level}" data-value="${esc(v)}">${dot(list[0], "lg")}<span><b class="sci">${esc(v)}</b><em>${esc(cladeOf(level, v))}</em></span><small>${list.length}</small></button>`).join("")}</div>`;
   }
 
+  // Every species in the chosen country (on a phone the birds on the map are small). Visitors last.
+  if (cf && tf?.level !== "genus") {
+    const faint = (s) => +isFaint(s.dist.find((d) => d.iso === cf.iso).st);
+    const list = [...active].sort((a, b) => faint(a) - faint(b) || a.seq - b.seq);
+    html += `<h3>${tx(`All ${plural(list.length, "species", "species")} here`, `Las ${plural(list.length, "especie", "especies")} de aquí`)}</h3>${birdChips(list)}`;
+  }
   if (cf) {
     const only = onlyIn(cf.name).filter((s) => S.active.has(s.code));
     html += `<h3>${tx("Found only in", "Solo viven en")} ${esc(cf.label)}${only.length ? tx(` (${only.length} species)`, ` (${only.length} especies)`) : ""}</h3>` + (only.length ? birdChips(only) : `<p class="empty">${tx(`No hummingbird here is found only in ${esc(cf.label)}.`, `Ningún colibrí de aquí vive solo en ${esc(cf.label)}.`)}</p>`);
@@ -1734,7 +1768,13 @@ function searchIndex() {
     }
   }
   const species = S.species.map((s) => ({ s, text: norm(`${s.common} ${s.sci} ${s.es} ${s.ioc_name || ""}`), name: norm(nameOf(s)) }));
-  return { groups, species };
+  // Countries and territories, by the name shown and the stored English name ("Puerto Rico (US)").
+  const places = new Map();
+  for (const s of S.species) for (const d of s.dist) {
+    if (!places.has(d.iso)) places.set(d.iso, { iso: d.iso, name: shortCountry(d.c), text: norm(`${shortCountry(d.c)} ${d.c}`), n: 0 });
+    places.get(d.iso).n++;
+  }
+  return { groups, species, places: [...places.values()] };
 }
 
 function runSearch(q, idx) {
@@ -1745,14 +1785,15 @@ function runSearch(q, idx) {
   const rank = (name) => (name.startsWith(terms[0]) ? 0 : name.includes(" " + terms[0]) ? 1 : 2);
   const groups = idx.groups.filter((g) => hit(g.text)).sort((a, b) => rank(norm(a.value)) - rank(norm(b.value))).slice(0, 4);
   const species = idx.species.filter((x) => hit(x.text)).sort((a, b) => rank(a.name) - rank(b.name) || a.s.seq - b.s.seq).slice(0, 8);
-  return [...groups.map((g) => ({ kind: "group", ...g })), ...species.map((x) => ({ kind: "species", s: x.s }))];
+  const places = idx.places.filter((c) => hit(c.text)).sort((a, b) => rank(norm(a.name)) - rank(norm(b.name)) || b.n - a.n).slice(0, 3);
+  return [...places.map((c) => ({ kind: "place", ...c })), ...groups.map((g) => ({ kind: "group", ...g })), ...species.map((x) => ({ kind: "species", s: x.s }))];
 }
 
 function bindSearch() {
   const input = $("q"), list = $("results");
   // The full hint only fits on wide screens; elsewhere it would be cut off mid-word.
   const roomy = matchMedia("(min-width: 1241px), (max-width: 800px)");
-  const setHint = () => { input.placeholder = roomy.matches ? tx("Search species or groups", "Buscar especies o grupos") : tx("Search", "Buscar"); };
+  const setHint = () => { input.placeholder = roomy.matches ? tx("Search species, groups or places", "Buscar especies, grupos o lugares") : tx("Search", "Buscar"); };
   setHint();
   roomy.addEventListener("change", setHint);
   let idx = null, items = [], cur = -1;
@@ -1770,6 +1811,8 @@ function bindSearch() {
     }
     list.innerHTML = items.map((it, i) => it.kind === "species"
       ? `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}">${dot(it.s)}<span><b>${esc(nameOf(it.s))}</b><em>${esc(it.s.sci)}</em></span></li>`
+      : it.kind === "place"
+      ? `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}"><svg class="pin" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 15s5-5.2 5-9A5 5 0 0 0 1 6c0 3.8 5 9 5 9z"/><circle cx="6" cy="6" r="1.8"/></svg><span><small>${tx("Country or territory", "País o territorio")}</small><b>${esc(it.name)}</b><em>${ES ? plural(it.n, "especie", "especies") : plural(it.n, "species", "species")}</em></span></li>`
       : `<li role="option" id="r${i}" data-i="${i}" aria-selected="${i === cur}">${dot(it.sample)}<span><small>${RANK[it.level]}</small><b class="sci">${esc(it.value)}</b>${it.clade ? `<em>${esc(it.clade)}</em>` : ""}</span></li>`).join("");
     list.hidden = false;
     input.setAttribute("aria-expanded", "true");
@@ -1779,6 +1822,7 @@ function bindSearch() {
     stopWander();
     close(); input.value = ""; input.blur(); shut();
     if (it.kind === "species") select(it.s.code);
+    else if (it.kind === "place") { if (S.view !== "world") setView("world"); pushFilter(countryFilterFor(it.iso)); }
     else { pushFilter(taxonFilter(it.level, it.value)); if (S.view !== "family") setView("family"); }
   };
   input.addEventListener("input", () => { idx ||= searchIndex(); items = runSearch(input.value, idx); cur = items.length ? 0 : -1; render(); });

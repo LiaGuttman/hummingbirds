@@ -91,6 +91,7 @@ button { font: inherit; color: inherit; }
 .results li b { font-weight: 600; }
 .results li b.sci { font: italic 600 16px var(--display); }
 .results li em { font: italic 13.5px var(--display); color: var(--muted); }
+.results li .pin { width: 12px; height: 16px; flex: none; fill: none; stroke: var(--accent); stroke-width: 1.4; }
 .results li small { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .results li.none { color: var(--muted); cursor: default; }
 
@@ -205,6 +206,9 @@ button { font: inherit; color: inherit; }
   border: 0; background: rgba(6,14,40,0.72); width: 30px; height: 30px; border-radius: 50%;
   cursor: pointer; font-size: 16px; line-height: 1; backdrop-filter: blur(6px);
 }
+/* The phone list's close button; wider screens always show the panel. */
+.sheet-close { display: none; position: sticky; float: right; top: 0; margin: -10px -12px 0 8px; }
+.sheet-btn { display: none; }
 .close:hover { background: rgba(6,14,40,0.92); }
 .hero { position: relative; }
 
@@ -384,6 +388,15 @@ button { font: inherit; color: inherit; }
     transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);
   }
   .panel.open { transform: none; }
+  .sheet-close { display: block; }
+  .trail { right: 120px; }
+  .sheet-btn {
+    display: block; position: fixed; top: 142px; right: 16px; z-index: 2;
+    border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px);
+    color: var(--fg); font-size: 13px; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .sheet-btn span { color: var(--accent); }
+  body.card-open .sheet-btn { visibility: hidden; }
 }
 
 .countries[hidden] { display: none; }
