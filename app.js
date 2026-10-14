@@ -801,16 +801,42 @@ function drawBird(c, s, x, y, r, a, h, flap, now) {
   const gx = Math.cos(ang) * r * 1.1, gy = Math.sin(ang) * r * 1.1;
   const grad = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
   grad.addColorStop(0, c1); grad.addColorStop(0.5, c2); grad.addColorStop(1, c1);
+  if (r > 1.6) wing(c, s, x, y, r, a * 0.55, ch, sh, flap, now, 0.22);
   c.fillStyle = grad;
   c.beginPath(); c.ellipse(x, y, r * 1.12, r * 0.88, h, 0, Math.PI * 2);
   if (s.extinct) { c.globalAlpha = a * 0.25; c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
   else c.fill();
+  if (r > 1.6) wing(c, s, x, y, r, a * 0.9, ch, sh, flap, now, 0);
   // Glint
   if (r > 2.5) {
     c.fillStyle = "rgba(255,255,255,0.55)";
     c.beginPath(); c.arc(x + ch * r * 0.35 + sh * r * 0.3, y + sh * r * 0.35 - ch * r * 0.3, r * 0.18, 0, Math.PI * 2); c.fill();
   }
   c.globalAlpha = 1;
+}
+
+// A long, pointed hummingbird wing, rooted on the back and swept up and back toward the tail.
+// It stays on the upper side whichever way the bird faces. Raised at rest; beating in flight.
+// `lag` draws the far wing a little further back, so the two read as a pair.
+function wing(c, s, x, y, r, a, ch, sh, flap, now, lag) {
+  let ux = sh, uy = -ch;                    // the back
+  if (uy > 0) { ux = -ux; uy = -uy; }
+  const bx = -ch, by = -sh;                 // toward the tail
+  const rest = 0.34 + 0.04 * Math.sin(now * 0.002 + s._ph);
+  const beat = 0.75 + 0.75 * Math.sin(now * 0.06 + s._ph);
+  const t = rest * (1 - flap) + beat * flap + lag;   // 0 = folded back along the body, π/2 = straight up
+  const dx = bx * Math.cos(t) + ux * Math.sin(t), dy = by * Math.cos(t) + uy * Math.sin(t);
+  const nx = -dy, ny = dx;                  // across the wing
+  const len = r * 1.9, wid = r * 0.55;
+  const x0 = x + ux * r * 0.35 - bx * r * 0.2, y0 = y + uy * r * 0.35 - by * r * 0.2;
+  const x1 = x0 + dx * len, y1 = y0 + dy * len;
+  c.globalAlpha = a;
+  c.fillStyle = "rgba(226,236,255,0.82)";
+  c.beginPath();
+  c.moveTo(x0 + nx * wid * 0.5, y0 + ny * wid * 0.5);
+  c.quadraticCurveTo(x0 + dx * len * 0.45 + nx * wid, y0 + dy * len * 0.45 + ny * wid, x1, y1);
+  c.quadraticCurveTo(x0 + dx * len * 0.5 - nx * wid * 0.35, y0 + dy * len * 0.5 - ny * wid * 0.35, x0 - nx * wid * 0.4, y0 - ny * wid * 0.4);
+  c.closePath(); c.fill();
 }
 
 function drawMap() {
