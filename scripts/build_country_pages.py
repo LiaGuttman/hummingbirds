@@ -310,7 +310,14 @@ def index_page(L):
             + L.t("Open a country to see which hummingbirds live there and how they compare.",
                   "Abre un país para ver qué colibríes viven ahí y cómo se comparan."))
     alternates = [("en", f"{SITE}/countries/"), ("es", f"{SITE}/es/paises/"), ("x-default", f"{SITE}/countries/")]
-    return (head(L, title, desc, f"{SITE}/{L.cdir}/", alternates, root) + header(L, root, root + other.cdir + "/")
+    ranked = [(i, v) for i, v in order if L.country_path(names[i])]
+    ld = {"@context": "https://schema.org", "@type": "ItemList", "name": title, "url": f"{SITE}/{L.cdir}/", "inLanguage": L.code,
+          "numberOfItems": len(ranked), "itemListOrder": "https://schema.org/ItemListOrderDescending",
+          "itemListElement": [{"@type": "ListItem", "position": k, "url": f"{SITE}/{L.country_path(names[i])}",
+                               "name": L.t(f"{L.country(names[i])}: {v} species", f"{L.country(names[i])}: {v} especies")}
+                              for k, (i, v) in enumerate(ranked, 1)]}
+    extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
+    return (head(L, title, desc, f"{SITE}/{L.cdir}/", alternates, root, None, extra) + header(L, root, root + other.cdir + "/")
             + f"""<main class="sp ctry">
 <nav class="crumbs" aria-label="{L.t('Breadcrumb', 'Ruta')}"><a href="{root}{L.t('', 'es/')}">Hummingbirds World</a> › {L.t('By country', 'Por país')}</nav>
 <h1>{L.t('Hummingbirds by country', 'Colibríes por país')}</h1>

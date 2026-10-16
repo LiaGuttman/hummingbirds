@@ -208,6 +208,16 @@ def credit(ph, L):
     return f"{L.t('Photo', 'Foto')}: {e(ph.get('artist'))} · {lic}{src}"
 
 
+def image_object(ph, url):
+    """schema.org ImageObject with the photographer and license, so search engines can show the credit."""
+    obj = {"@type": "ImageObject", "contentUrl": url, "width": ph.get("w"), "height": ph.get("h"),
+           "creditText": ph.get("artist"), "creator": {"@type": "Person", "name": ph.get("artist")}}
+    if ph.get("licenseUrl"):
+        obj["license"] = ph["licenseUrl"]
+        obj["acquireLicensePage"] = ph.get("page") or ph["licenseUrl"]
+    return {k: v for k, v in obj.items() if v}
+
+
 def relatives(s):
     rel = [x for x in species if x is not s and x["genus"] == s["genus"]]
     if not rel:
@@ -406,7 +416,7 @@ def species_page(s, L):
         {"@type": "Taxon", "@id": url + "#taxon", "name": s["sci"], "taxonRank": "species", "url": url, "inLanguage": L.code,
          "alternateName": list(dict.fromkeys(n for n in [name, s["common"], s["es"], s["ioc_name"]] if n)),
          "parentTaxon": {"@type": "Taxon", "name": s["genus"], "taxonRank": "genus"},
-         **({"image": img_abs} if img_abs else {})},
+         **({"image": image_object(first, img_abs)} if img_abs else {})},
         {"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Hummingbirds World", "item": SITE + L.t("/", "/es/")},
             {"@type": "ListItem", "position": 2, "name": L.t("All species", "Todas las especies"), "item": f"{SITE}/{L.dir}/"},
@@ -468,7 +478,12 @@ def index_page(L):
                "La lista completa de las 363 especies de colibrí del mundo, por subfamilia y género, cada una con foto, peso y estado en la Lista Roja.")
     lede = L.t(f'Every species in the hummingbird family, Trochilidae, as recognized in the eBird/Clements taxonomy. They are grouped by subfamily and genus, in taxonomic order. <a href="{root}">Explore them as a flock</a> by family tree, on the world map, by size and by conservation status.',
                f'Todas las especies de la familia de los colibríes, Trochilidae, según la taxonomía eBird/Clements, con sus nombres en español de eBird México. Están agrupadas por subfamilia y género, en orden taxonómico. <a href="{root}es/">Explóralas como una parvada</a>: por árbol familiar, en el mapa del mundo, por tamaño y por estado de conservación.')
-    return (head(L, title, desc, f"{SITE}/{L.dir}/", alternates, root) + header(L, root, root + other.dir + "/")
+    ordered = sorted(species, key=lambda x: x["seq"])
+    ld = {"@context": "https://schema.org", "@type": "ItemList", "name": title, "url": f"{SITE}/{L.dir}/", "inLanguage": L.code,
+          "numberOfItems": len(ordered), "itemListOrder": "https://schema.org/ItemListUnordered",
+          "itemListElement": [{"@type": "ListItem", "position": i, "url": L.url(s), "name": L.name(s)} for i, s in enumerate(ordered, 1)]}
+    extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
+    return (head(L, title, desc, f"{SITE}/{L.dir}/", alternates, root, None, extra) + header(L, root, root + other.dir + "/")
             + f"""<main class="sp idx">
 <h1>{L.t('All 363 hummingbird species', 'Las 363 especies de colibrí')}</h1>
 <p class="lede">{lede}</p>
