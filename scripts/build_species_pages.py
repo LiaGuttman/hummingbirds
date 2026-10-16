@@ -463,9 +463,9 @@ def index_page(L):
             items = "".join(f'<li><a href="{L.slug(s)}/">{e(L.name(s))}</a></li>' for s in sorted(by_genus[g], key=lambda x: x["seq"]))
             out.append(f'<h3><i>{e(g)}</i></h3><ul class="list">{items}</ul>')
         out.append("</section>")
-    title = L.t("All 363 hummingbird species · Hummingbirds World", "Las 363 especies de colibrí · Hummingbirds World")
-    desc = L.t("All 363 hummingbird species (family Trochilidae), grouped by subfamily and genus, each with its weight, range, Red List status and a photo.",
-               "Las 363 especies de colibrí (familia Trochilidae), agrupadas por subfamilia y género, cada una con su peso, su distribución, su estado en la Lista Roja y una foto.")
+    title = L.t("Hummingbird species list: all 363, with photos", "Lista de especies de colibrí: las 363, con fotos")
+    desc = L.t("The complete list of the world's 363 hummingbird species (family Trochilidae), by subfamily and genus, each with a photo, weight and Red List status.",
+               "La lista completa de las 363 especies de colibrí del mundo, por subfamilia y género, cada una con foto, peso y estado en la Lista Roja.")
     lede = L.t(f'Every species in the hummingbird family, Trochilidae, as recognized in the eBird/Clements taxonomy. They are grouped by subfamily and genus, in taxonomic order. <a href="{root}">Explore them as a flock</a> by family tree, on the world map, by size and by conservation status.',
                f'Todas las especies de la familia de los colibríes, Trochilidae, según la taxonomía eBird/Clements, con sus nombres en español de eBird México. Están agrupadas por subfamilia y género, en orden taxonómico. <a href="{root}es/">Explóralas como una parvada</a>: por árbol familiar, en el mapa del mundo, por tamaño y por estado de conservación.')
     return (head(L, title, desc, f"{SITE}/{L.dir}/", alternates, root) + header(L, root, root + other.dir + "/")

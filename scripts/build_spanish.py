@@ -18,21 +18,21 @@ APP = Path(__file__).resolve().parent.parent  # the website repo (this folder's 
 SITE = "https://hummingbirds.world"
 CREDITS_EN_HASH = "da4a0eb237c3178c"
 
-DESC = ("Explora las 363 especies de colibrí: por árbol familiar, en el mapa del mundo, por tamaño y por "
-        "estado de conservación, con fotos y una página de anatomía en 3D.")
+DESC = ("Explora todas las especies de colibrí en una sola pantalla: árbol familiar, mapa, tamaños y estado de "
+        "conservación, con foto de cada una y anatomía en 3D.")
 
 REPLACE = [
     ('<html lang="en">', '<html lang="es">'),
     ('<meta charset="utf-8">', '<meta charset="utf-8">\n<!-- Spanish copy of index.html (scripts/build_spanish.py). The base makes every file load from the site root. -->\n<base href="../">'),
-    ('<title>Hummingbirds World: all 363 hummingbird species</title>', '<title>Hummingbirds World: las 363 especies de colibrí</title>'),
+    ('<title>Hummingbirds World: all 363 species, photos &amp; map</title>', '<title>Hummingbirds World: las 363 especies, fotos y mapa</title>'),
     ('<link rel="canonical" href="https://hummingbirds.world/">', '<link rel="canonical" href="https://hummingbirds.world/es/">'),
     ('"url": "https://hummingbirds.world/", "description": "An interactive explorer of all 363 hummingbird species: by family tree, on the world map, by size and by conservation status."',
      '"url": "https://hummingbirds.world/es/", "description": "Un explorador interactivo de las 363 especies de colibrí: por árbol familiar, en el mapa del mundo, por tamaño y por estado de conservación."'),
     ('"inLanguage": "en"', '"inLanguage": "es"'),
-    ('<meta name="description" content="Explore all 363 hummingbird species: by family tree, on the world map, by size and by conservation status, with photos and a 3D anatomy page.">',
+    ('<meta name="description" content="Explore every hummingbird species on one screen: family tree, world map, sizes and conservation status, with a photo of each and a 3D anatomy page.">',
      f'<meta name="description" content="{DESC}">'),
     ('<meta property="og:url" content="https://hummingbirds.world/">', '<meta property="og:url" content="https://hummingbirds.world/es/">\n<meta property="og:locale" content="es_MX">'),
-    ('<meta property="og:description" content="Explore all 363 hummingbird species: by family tree, on the world map, by size and by conservation status, with photos and a 3D anatomy page.">',
+    ('<meta property="og:description" content="Explore every hummingbird species on one screen: family tree, world map, sizes and conservation status, with a photo of each and a 3D anatomy page.">',
      f'<meta property="og:description" content="{DESC}">'),
     ('content="The Hummingbirds site: a flock of all 363 species in color, next to the title."',
      'content="El sitio Hummingbirds World: una parvada de las 363 especies en color, junto al título."'),
