@@ -22,7 +22,7 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent.parent  # the website repo (this folder's parent)
 SITE = "https://hummingbirds.world"
 CONTACT = "lia@hummingbirds.world"
-VERSION = "2026-10-05a"   # bump when species.css changes, so browsers fetch the new file
+VERSION = "2026-10-16a"   # bump when species.css changes, so browsers fetch the new file
 
 STATUS_COLOR = {"LC": "#60c659", "NT": "#cce226", "VU": "#f9e814", "EN": "#fc7f3f", "CR": "#ff4a2e",
                 "EX": "#8a93a8", "DD": "#c9cfdc", "NE": "#c9cfdc"}
@@ -87,6 +87,8 @@ species = json.loads((APP / "species.json").read_text())
 photos = json.loads((APP / "photos.json").read_text())
 own = json.loads((APP / "own_photos.json").read_text())
 ml = json.loads((APP / "ml_photos.json").read_text())
+# Lia's own videos on YouTube, by species code: {"<code>": [{"youtube": id, "author", "place", "date", "date_es", "vertical"}]}.
+videos = json.loads((APP / "videos.json").read_text())
 by_genus = {}
 iso_by_name = {}
 for s in species:
@@ -383,6 +385,16 @@ def species_page(s, L):
     if s["endemic"]:
         facts.append((L.t("Endemic", "Endémico"), L.t(f"Found only in {e(L.place(s['endemic']))}", f"Solo vive en {e(L.place(s['endemic']))}")))
     facts_html = "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in facts)
+    # Videos play from YouTube's privacy-enhanced domain, so no YouTube cookies are set until someone presses play.
+    video_html = "".join(
+        f'<figure class="video{" tall" if v.get("vertical") else ""}"><iframe src="https://www.youtube-nocookie.com/embed/{e(v["youtube"])}" '
+        f'title="{e(name)}, {L.t("video by", "video de")} {e(v["author"])}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" '
+        'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>'
+        f'<figcaption>{e(v["author"])} · {e(v["place"])}, {e(L.t(v["date"], v.get("date_es", v["date"])))} · '
+        f'<a href="https://www.youtube.com/watch?v={e(v["youtube"])}" target="_blank" rel="noopener">YouTube ↗</a></figcaption></figure>'
+        for v in videos.get(s["code"], []))
+    if video_html:
+        video_html = f"\n<h2>{L.t('Video', 'Video')}</h2>\n{video_html}\n"
 
     tribe_row = (f'<li><span class="rank">{L.t("Tribe", "Tribu")}</span> <i>{e(s["tribe"])}</i> <em>{e(L.tribe[s["tribe"]])}</em></li>'
                  if s["tribe"] != "—" else "")
@@ -436,7 +448,7 @@ def species_page(s, L):
 
 <h2>{L.t('At a glance', 'De un vistazo')}</h2>
 <dl class="facts">{facts_html}</dl>
-
+{video_html}
 <h2>{L.t('Its place in the family', 'Su lugar en la familia')}</h2>
 {places}
 
