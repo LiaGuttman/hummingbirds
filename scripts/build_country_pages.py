@@ -16,7 +16,7 @@ from collections import Counter
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 from build_species_pages import (APP, SITE, STATUS_COLOR, FAINT, L_EN, L_ES, e, slug, thumb, species,
-                                 photo_list, head, header, foot, write, paged)
+                                 photo_list, head, header, foot, write, paged, fit)
 
 # Groups in taxonomic order: the subfamily, or its tribe where it has tribes. Colors as in the explorer.
 GROUPS = [("Florisuginae", "#ff6a3d"), ("Phaethornithinae", "#c49d5f"), ("Polytminae", "#2fe0a0"),
@@ -219,9 +219,12 @@ def country_page(iso, L):
     # ---- Page.
     url = page_url(L, iso)
     alternates = [("en", page_url(L_EN, iso)), ("es", page_url(L_ES, iso)), ("x-default", page_url(L_EN, iso))]
-    title = L.t(f"Hummingbirds of {cname}: all {n} species · Hummingbirds World", f"Colibríes de {cname}: las {n} especies · Hummingbirds World")
-    desc = L.t(f"All {n} hummingbird species of {cname}, including {len(ends)} found nowhere else: how they fit in the family, their Red List status and their sizes.",
-               f"Las {n} especies de colibrí de {cname}, entre ellas {len(ends)} que no viven en ningún otro lugar: su lugar en la familia, su estado en la Lista Roja y sus tamaños.")
+    title = L.t(f"Hummingbirds of {cname}: all {n} species", f"Colibríes de {cname}: las {n} especies")
+    title = fit(title + " · Hummingbirds World", title, limit=60)
+    only = (L.t(f", including {len(ends)} found nowhere else", f", entre ellas {len(ends)} que no {'vive' if len(ends) == 1 else 'viven'} en ningún otro lugar") if ends else "")
+    desc = fit(L.t(f"All {n} hummingbird species of {cname}{only}, with photos, sizes and Red List status.",
+                   f"Las {n} especies de colibrí de {cname}{only}, con fotos, tamaños y estado en la Lista Roja."),
+               L.t(f"All {n} hummingbird species of {cname}{only}.", f"Las {n} especies de colibrí de {cname}{only}."), limit=155)
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": title.split(" · ")[0], "inLanguage": L.code,
          "about": {"@type": "Country", "name": cname}},
@@ -291,9 +294,10 @@ def index_page(L):
                 f'<span class="num">{L.t("Only here", "Solo aquí")}</span><span class="num">{L.t("Threatened", "Amenazadas")}</span></li>')
     n_ctry = len(count)
     best_e = max(endemic_n, key=endemic_n.get)
-    title = L.t("Hummingbirds by country · Hummingbirds World", "Colibríes por país · Hummingbirds World")
-    desc = L.t(f"All {n_ctry} countries and territories with hummingbirds, ranked by number of species, with their endemic and threatened species.",
-               f"Los {n_ctry} países y territorios con colibríes, ordenados por número de especies, con sus especies endémicas y amenazadas.")
+    title = L.t("Which country has the most hummingbird species?", "¿Qué país tiene más especies de colibrí?")
+    (c1, n1), (c2, n2), (c3, n3) = [(L.place(names[i]), v) for i, v in order[:3]]
+    desc = L.t(f"{c1[0].upper() + c1[1:]} has the most hummingbird species ({n1}), then {c2} ({n2}) and {c3} ({n3}). All {n_ctry} countries and territories, ranked.",
+               f"{c1[0].upper() + c1[1:]} tiene más especies de colibrí ({n1}), seguida de {c2} ({n2}) y {c3} ({n3}). Los {n_ctry} países y territorios, por número de especies.")
     lead, lead_e = up(e(L.place(names[order[0][0]]))), e(L.place(names[best_e]))
     if best_e == order[0][0]:
         most = L.t(f"{lead} has both the most species, {top}, and the most found nowhere else, {endemic_n[best_e]}. ",
