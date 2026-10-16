@@ -6,7 +6,7 @@ Run by .github/workflows/indexnow.yml after each push to main:
 A page is <folder>/index.html; changes to the explorer's scripts, styles or data count as changes to the
 two home pages. Nothing is sent when no page changed.
 """
-import json, re, subprocess, sys, urllib.request
+import json, re, subprocess, sys, urllib.error, urllib.request
 from pathlib import Path
 
 SITE = "https://hummingbirds.world"
@@ -43,8 +43,13 @@ if __name__ == "__main__":
         sys.exit(print("No pages changed; nothing sent."))
     body = json.dumps({"host": HOST, "key": KEY, "keyLocation": f"{SITE}/{KEY}.txt", "urlList": url_list[:10000]}).encode()
     req = urllib.request.Request("https://api.indexnow.org/indexnow", data=body,
-                                 headers={"Content-Type": "application/json; charset=utf-8"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        print(f"IndexNow: {len(url_list)} pages sent, HTTP {r.status}")
+                                 headers={"Content-Type": "application/json; charset=utf-8",
+                                          "User-Agent": f"hummingbirds.world-indexnow (+{SITE}/)"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            print(f"IndexNow: {len(url_list)} pages sent, HTTP {r.status}")
+    except urllib.error.HTTPError as err:
+        # 403: key not valid yet; 422: URLs don't match the host; 429: too many requests.
+        sys.exit(f"IndexNow refused: HTTP {err.code} {err.reason}: {err.read().decode(errors='replace')[:500]}")
     for u in url_list[:20]:
         print(" ", u)
