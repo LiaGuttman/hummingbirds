@@ -329,4 +329,7 @@ if __name__ == "__main__":
         for iso in sorted(only):
             changed += write(APP / L.country_path(names[iso]) / "index.html", country_page(iso, L))
         changed += write(APP / L.cdir / "index.html", index_page(L))
-    print(f"{len(only)} countries × 2 languages, indexes; {changed} files changed")
+    if not sys.argv[1:]:
+        import build_sitemap
+        changed += build_sitemap.build()
+    print(f"{len(only)} countries × 2 languages, indexes, sitemap.xml; {changed} files changed")

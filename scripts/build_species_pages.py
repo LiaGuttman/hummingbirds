@@ -17,7 +17,6 @@ Run from the website repo folder (needs Python 3.12+ and Node) after build_publi
 """
 import html, json, re, subprocess, sys, unicodedata
 from urllib.parse import quote
-from datetime import date
 from pathlib import Path
 
 APP = Path(__file__).resolve().parent.parent  # the website repo (this folder's parent)
@@ -467,18 +466,7 @@ if __name__ == "__main__":
         changed += write(APP / L.dir / "index.html", index_page(L))
 
     if not only:
-        today = date.today().isoformat()
-        pairs = [(f"{SITE}/", f"{SITE}/es/"), (f"{SITE}/species/", f"{SITE}/es/especies/")]
-        pairs += [(L_EN.url(s), L_ES.url(s)) for s in sorted(species, key=lambda x: x["seq"])]
-        pairs += [(f"{SITE}/countries/", f"{SITE}/es/paises/")]
-        pairs += [(f"{SITE}/{L_EN.country_path(c)}", f"{SITE}/{L_ES.country_path(c)}") for c in sorted(paged, key=L_EN.country)]
-        rows = []
-        for en, es in pairs:
-            alt = (f'<xhtml:link rel="alternate" hreflang="en" href="{en}"/><xhtml:link rel="alternate" hreflang="es" href="{es}"/>'
-                   f'<xhtml:link rel="alternate" hreflang="x-default" href="{en}"/>')
-            rows += [f"  <url><loc>{u}</loc><lastmod>{today}</lastmod>{alt}</url>\n" for u in (en, es)]
-        changed += write(APP / "sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
-                         + "".join(rows) + "</urlset>\n")
+        # sitemap.xml is written by build_sitemap.py, which build_country_pages.py runs last.
         changed += write(APP / "robots.txt", f"# Everyone is welcome, search engines and AI assistants alike.\nUser-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
         changed += write(APP / "llms.txt", f"""# Hummingbirds World
 
