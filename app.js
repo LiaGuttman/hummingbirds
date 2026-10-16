@@ -769,46 +769,63 @@ function ring(x, y, r, color, w) {
 }
 
 // A hummingbird reduced to a shimmering body, a bill scaled to the real bill length, a tail and blurred wings.
+// Each species is drawn as a small hummingbird: round head with an eye, tapering body, forked tail,
+// its real bill length, and two wings raised in a V (like the logo). The wings stir slowly at rest
+// and beat fast while the bird flies. The bird stays upright whichever way it faces.
+const BIRD_BODY = [[0.98, 0.05], [1.0, 0.62, 0.45, 0.62], [0.0, 0.55, -0.7, 0.3], [-1.15, 0.18], [-1.95, 0.5], [-1.6, 0.02],
+  [-1.95, -0.42], [-1.1, -0.18], [-0.45, -0.62, 0.35, -0.55], [0.95, -0.45, 0.98, 0.05]];
+// One wing, turned by t about the shoulder (0 = folded back along the body, π/2 = straight up).
+function wingShape(t, len) {
+  const R = (a, b) => [0.15 + a * Math.cos(t) + b * Math.sin(t), 0.35 - a * Math.sin(t) + b * Math.cos(t)];
+  return [R(0.1, 0.05), [...R(-len * 0.45, 0.42), ...R(-len, 0.12)], [...R(-len * 0.55, -0.12), ...R(-0.05, -0.12)]];
+}
+function tracePath(c, P, pts) {
+  c.beginPath();
+  c.moveTo(...P(...pts[0]));
+  for (const p of pts.slice(1)) {
+    if (p.length === 4) c.quadraticCurveTo(...P(p[0], p[1]), ...P(p[2], p[3]));
+    else c.lineTo(...P(...p));
+  }
+  c.closePath();
+}
 function drawBird(c, s, x, y, r, a, h, flap, now) {
   if (r < 0.3 || !Number.isFinite(x + y + r)) return;
   const [c1, c2] = SUB[s.subfamily].c;
   const ch = Math.cos(h), sh = Math.sin(h);
-  c.globalAlpha = a;
-
-  if (flap > 0.08) {
-    const beat = 0.6 + 0.4 * Math.sin(now * 0.09 + s._ph);
-    c.fillStyle = `rgba(255,255,255,${0.18 * flap})`;
-    c.beginPath(); c.ellipse(x - ch * r * 0.2, y - sh * r * 0.2, r * 0.55, r * (1.2 + 0.9 * beat), h, 0, Math.PI * 2); c.fill();
-  }
-  // Tail
-  c.fillStyle = c1;
-  c.globalAlpha = a * 0.8;
-  const bx = x - ch * r * 0.8, by = y - sh * r * 0.8;
-  c.beginPath();
-  c.moveTo(bx - sh * r * 0.35, by + ch * r * 0.35);
-  c.lineTo(bx + sh * r * 0.35, by - ch * r * 0.35);
-  c.lineTo(x - ch * r * 1.75, y - sh * r * 1.75);
-  c.closePath(); c.fill();
-  c.globalAlpha = a;
+  let ux = sh, uy = -ch;
+  if (uy > 0) { ux = -ux; uy = -uy; }
+  const u = r * 0.8;
+  const P = (along, up) => [x + (ch * along + ux * up) * u, y + (sh * along + uy * up) * u];
+  // A gradient that slowly turns, so the color shifts like iridescence.
+  const shine = (offset) => {
+    const ang = (now + offset) * 0.0011 + s._ph;
+    const gx = Math.cos(ang) * r * 1.4, gy = Math.sin(ang) * r * 1.4;
+    const g = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
+    g.addColorStop(0, c1); g.addColorStop(0.5, c2); g.addColorStop(1, c1);
+    return g;
+  };
+  const wings = r > 1.6;
+  const beat = Math.sin(now * (flap > 0.1 ? 0.06 : 0.004) + s._ph);
+  const t1 = 1.05 + 0.25 * beat * (0.3 + 0.7 * flap);
+  // Far wing
+  if (wings) { c.globalAlpha = a * 0.6; c.fillStyle = c2; tracePath(c, P, wingShape(t1 + 0.45, 1.6)); c.fill(); }
   // Bill
-  const bill = r * (0.35 + (s.bill || 18) / 30);
+  const bill = 0.35 + (s.bill || 18) / 30;
+  c.globalAlpha = a;
   c.strokeStyle = "rgba(235,232,220,0.9)";
-  c.lineWidth = Math.max(0.7, r * 0.17);
+  c.lineWidth = Math.max(0.7, r * 0.15);
   c.lineCap = "round";
-  c.beginPath(); c.moveTo(x + ch * r * 0.9, y + sh * r * 0.9); c.lineTo(x + ch * (r + bill), y + sh * (r + bill)); c.stroke();
-  // Body with a gradient that slowly turns, so the color shifts like iridescence
-  const ang = now * 0.0011 + s._ph;
-  const gx = Math.cos(ang) * r * 1.1, gy = Math.sin(ang) * r * 1.1;
-  const grad = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
-  grad.addColorStop(0, c1); grad.addColorStop(0.5, c2); grad.addColorStop(1, c1);
-  c.fillStyle = grad;
-  c.beginPath(); c.ellipse(x, y, r * 1.12, r * 0.88, h, 0, Math.PI * 2);
-  if (s.extinct) { c.globalAlpha = a * 0.25; c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
-  else c.fill();
-  // Glint
-  if (r > 2.5) {
-    c.fillStyle = "rgba(255,255,255,0.55)";
-    c.beginPath(); c.arc(x + ch * r * 0.35 + sh * r * 0.3, y + sh * r * 0.35 - ch * r * 0.3, r * 0.18, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.moveTo(...P(0.95, 0.12)); c.lineTo(...P(0.95 + bill, 0.02)); c.stroke();
+  // Body
+  tracePath(c, P, BIRD_BODY);
+  if (s.extinct) { c.globalAlpha = a * 0.25; c.fillStyle = shine(0); c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
+  else { c.fillStyle = shine(0); c.fill(); }
+  if (r > 3) { c.fillStyle = "rgba(10,14,30,0.85)"; c.beginPath(); c.arc(...P(0.6, 0.25), Math.max(0.6, r * 0.09), 0, Math.PI * 2); c.fill(); }
+  // Near wing
+  if (wings) {
+    c.globalAlpha = s.extinct ? a * 0.4 : a;
+    c.fillStyle = shine(900); tracePath(c, P, wingShape(t1, 1.75)); c.fill();
+    c.fillStyle = "rgba(255,255,255,0.18)"; c.fill();
   }
   c.globalAlpha = 1;
 }
