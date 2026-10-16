@@ -1,5 +1,5 @@
 """Write one plain HTML page per species in English and Mexican Spanish, plus an index for each,
-sitemap.xml, robots.txt and llms.txt.
+robots.txt and llms.txt (sitemap.xml comes from build_sitemap.py).
 
 The explorer draws everything on a canvas, so search engines and AI assistants can't read it.
 These pages give every species a readable, linkable page with the same facts its card shows,
@@ -247,6 +247,37 @@ def summary(s, L, plain=False):
     return " ".join(parts)
 
 
+def fit(*options, limit):
+    """The first option that fits in `limit` characters (search engines cut longer titles and descriptions)."""
+    return next((o for o in options if len(o) <= limit), options[-1])
+
+
+def species_title(s, L):
+    """Up to 60 characters: the name and scientific name, plus what the page offers when there is room."""
+    nm = f"{L.name(s)} ({s['sci']})"
+    return fit(nm + L.t(": size, range & photo", ": tamaño, área y foto"), nm, limit=60)
+
+
+def species_description(s, L):
+    """Up to 155 characters, built from the same fields as the page: size, countries, Red List status."""
+    nm = f"{L.name(s)} ({s['sci']})"
+    size = ""
+    if s["mass"]:
+        size = L.t(f": about {s['mass']} g", f": unos {s['mass']} g") + (L.t(f", bill {s['bill']} mm", f", pico de {s['bill']} mm") if s["bill"] else "")
+    lives = [L.place(d["c"]) for d in sorted(s["dist"], key=lambda d: -(d["n"] or 0)) if not FAINT.search(d["st"])]
+    if s["endemic"]:
+        where = [L.t(f"Found only in {L.place(s['endemic'])}.", f"Solo vive en {L.place(s['endemic'])}.")]
+    elif lives:
+        where = [L.t(f"Lives in {L.and_list(lives)}.", f"Vive en {L.and_list(lives)}.")] if len(lives) <= 3 else []
+        where += [L.t(f"Lives in {len(lives)} countries, including {L.and_list(lives[:2])}.", f"Vive en {len(lives)} países, entre ellos {L.and_list(lives[:2])}."),
+                  L.t(f"Lives in {len(lives)} countries.", f"Vive en {len(lives)} países.")]
+    else:
+        where = [""]
+    red = L.t(f"Red List: {L.iucn.get(s['iucn'], s['iucn'])}.", f"Lista Roja: {L.iucn.get(s['iucn'], s['iucn'])}.")
+    options = [" ".join(f"{nm}{size}. {w} {red}{end}".split()) for w in where for end in (L.t(" Photo and facts.", " Foto y datos."), "")]
+    return fit(*options, " ".join(f"{nm}{size}. {red}".split()), limit=155)
+
+
 def head(L, title, desc, canonical, alternates, root, image=None, extra=""):
     img = image or f"{SITE}/og.jpg"
     alt = "".join(f'<link rel="alternate" hreflang="{h}" href="{u}">\n' for h, u in alternates)
@@ -370,7 +401,7 @@ def species_page(s, L):
 
     alt_name = L.t(s["es"] and f'Spanish: {e(s["es"])}', f'Inglés: {e(s["common"])}')
     names = [alt_name, s["ioc_name"] and f'IOC: {e(s["ioc_name"])}']
-    desc = summary(s, L, plain=True)
+    desc = species_description(s, L)
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Taxon", "@id": url + "#taxon", "name": s["sci"], "taxonRank": "species", "url": url, "inLanguage": L.code,
          "alternateName": list(dict.fromkeys(n for n in [name, s["common"], s["es"], s["ioc_name"]] if n)),
@@ -384,7 +415,7 @@ def species_page(s, L):
     ebird = f"https://ebird.org/species/{e(s['code'])}{L.t('', '?siteLanguage=es_MX')}"
     other_href = "../" * depth + f"{other.dir}/{other.slug(s)}/"
 
-    return head(L, f"{name} ({s['sci']}) · Hummingbirds World", desc, url, alternates, root, img_abs, extra) + header(L, root, other_href) + f"""<main class="sp">
+    return head(L, species_title(s, L), desc, url, alternates, root, img_abs, extra) + header(L, root, other_href) + f"""<main class="sp">
 <nav class="crumbs" aria-label="{L.t('Breadcrumb', 'Ruta')}"><a href="../">{L.t('All species', 'Todas las especies')}</a> › <i>{e(s['subfamily'])}</i>{f" › <i>{e(s['tribe'])}</i>" if s['tribe'] != "—" else ""} › <i>{e(s['genus'])}</i></nav>
 {photo}
 <h1>{e(name)}</h1>
@@ -486,4 +517,4 @@ Sources: eBird/Clements Checklist (names and taxonomy; Spanish names from eBird 
 - [The explorer]({SITE}/): the interactive site, with family tree, world map, size and status views and a 3D anatomy page ([en español]({SITE}/es/))
 """)
     n = len(only) if only else len(species)
-    print(f"{n} species × 2 languages, indexes" + ("" if only else ", sitemap.xml, robots.txt, llms.txt") + f"; {changed} files changed")
+    print(f"{n} species × 2 languages, indexes" + ("" if only else ", robots.txt, llms.txt") + f"; {changed} files changed")
