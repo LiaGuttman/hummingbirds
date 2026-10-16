@@ -1,0 +1,26 @@
+# Tells Bing (and the other IndexNow search engines) which pages changed, after each push to main.
+# The key file ad0e157e33925e803ff739efba80eb11.txt at the site root proves the site is ours; the key is public by design.
+name: IndexNow
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # "Run workflow" button in the Actions tab: sends every page in the sitemap
+permissions:
+  contents: read
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wait for GitHub Pages to publish the push
+        if: github.event_name == 'push'
+        run: sleep 120
+      - name: Send the changed pages to IndexNow
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then python3 scripts/indexnow.py --all
+          else python3 scripts/indexnow.py "$BEFORE" "$AFTER"; fi
