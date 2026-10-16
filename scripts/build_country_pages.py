@@ -151,7 +151,7 @@ def country_page(iso, L):
         ph = (photo_list(s) or [None])[0]
         if ph:
             src = thumb(ph["src"], 500) if ph["src"].startswith("http") else root + ph["src"]
-            img = f'<img src="{e(src)}" alt="{e(L.name(s))}" width="{ph.get("w", 4)}" height="{ph.get("h", 3)}" loading="lazy">'
+            img = f'<img src="{e(src)}" alt="{e(L.name(s))} ({e(s['sci'])})" width="{ph.get("w", 4)}" height="{ph.get("h", 3)}" loading="lazy">'
             cr = f'<small class="cr">{e(ph.get("artist"))} · {e(L.t(ph.get("license"), "Todos los derechos reservados") if ph.get("license") == "All rights reserved" else ph.get("license"))}</small>'
         else:
             img, cr = f'<span class="nopic">{L.t("No free photo yet", "Aún sin foto libre")}</span>', ""

@@ -355,7 +355,7 @@ def species_page(s, L):
         src = thumb(first["src"], 960) if first["src"].startswith("http") else root + first["src"]
         ratio = max(0.8, min(1.6, first["w"] / first["h"])) if first.get("w") and first.get("h") else 4 / 3
         more = len(plist) - 1
-        photo = (f'<figure class="photo"><img src="{e(src)}" alt="{e(name)}" width="{first.get("w", "")}" height="{first.get("h", "")}" '
+        photo = (f'<figure class="photo"><img src="{e(src)}" alt="{e(name)} ({e(s['sci'])})" width="{first.get("w", "")}" height="{first.get("h", "")}" '
                  f'style="aspect-ratio:{ratio:.3f}"><figcaption>{credit(first, L)}'
                  + (f' · <a href="{explorer}">{L.t(f"{more} more in the explorer", f"{more} más en el explorador")}</a>' if more else "")
                  + "</figcaption></figure>")
