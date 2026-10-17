@@ -237,5 +237,17 @@
    "file": "Talamanca Hummingbird 4.jpg",
    "big": "photos/maghum2-3-big.jpg"
   }
+ ],
+ "snbhum1": [
+  {
+   "src": "photos/snbhum1-1.jpg",
+   "w": 1432,
+   "h": 1600,
+   "artist": "Irving Peres",
+   "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "file": "Snowy-bellied Hummingbird.jpg",
+   "big": "photos/snbhum1-1-big.jpg"
+  }
  ]
 }
