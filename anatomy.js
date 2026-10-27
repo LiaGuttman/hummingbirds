@@ -164,6 +164,7 @@
       const pct = Math.round((e.detail.totalProgress || 0) * 100);
       loader.querySelector("b").textContent = pct + "%";
       loader.querySelector("i").style.width = pct + "%";
+      if (pct >= 100) loader.classList.add("done");
     });
     mv.addEventListener("load", () => loader.classList.add("done"));
     stage.prepend(loader);

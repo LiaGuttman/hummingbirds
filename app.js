@@ -167,7 +167,11 @@ Promise.all([
   const view = VIEWS.includes(params.get("view")) ? params.get("view") : hasCountry ? "world" : "swarm";
   setView(view, { first: true });
   if (linked && S.byCode[linked]) select(linked);
-  $("loading").classList.add("done");
+  // The loading text fades out, then leaves the page so screen readers never announce it afterwards.
+  const loading = $("loading");
+  loading.setAttribute("aria-hidden", "true");
+  loading.classList.add("done");
+  setTimeout(() => loading.remove(), 700);
   requestAnimationFrame(frame);
 });
 
@@ -1204,6 +1208,7 @@ function bindPanels() {
     stopWander(); popTo(+b.dataset.i);
   });
   $("sheetBtn").addEventListener("click", () => { stopWander(); S.sheet = true; renderPanel(); });
+  $("countries").addEventListener("scroll", stripEdges, { passive: true });
   $("countries").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-iso]"); if (!b) return;
     stopWander(); pushFilter(countryFilterFor(b.dataset.iso));
@@ -1245,6 +1250,7 @@ function bindPanels() {
   };
   refit();
   new ResizeObserver(refit).observe($("hint"));
+  new ResizeObserver(stripEdges).observe($("countries"));
   document.fonts?.ready.then(refit);
   window.visualViewport?.addEventListener("resize", () => setTimeout(refit, 150));
 
@@ -1355,6 +1361,14 @@ function renderCountries() {
   for (const s of S.species) for (const d of s.dist) names[d.iso] = shortCountry(d.c);
   el.innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1])
     .map(([iso, n]) => `<button data-iso="${iso}" ${cf && cf.iso === iso ? 'class="on"' : ""}>${esc(names[iso])}<b>${n}</b></button>`).join("");
+  stripEdges();
+}
+
+// The strip scrolls sideways; its edges fade wherever more countries are hidden, so it's clear there's more.
+function stripEdges() {
+  const el = $("countries");
+  el.classList.toggle("more-l", el.scrollLeft > 2);
+  el.classList.toggle("more-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
 }
 
 function dot(s, cls = "") { const [a, b] = SUB[s.subfamily].c; return `<i class="${cls}" style="background:linear-gradient(135deg,${a},${b})"></i>`; }
@@ -1628,7 +1642,7 @@ function cardHTML(s) {
   <h2><a class="titlelink" href="${pageOf(s)}" title="${tx("Open the species page", "Abrir la página de la especie")}">${esc(nameOf(s))}<svg class="info" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg></a></h2>
   <div class="sci big">${esc(s.sci)}</div>
   <div class="es">${ES ? "Inglés: " : ""}${esc(otherName(s))}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
+  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="${pageOf(s)}">${tx("Species page", "Página de la especie")} →</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
 
   <h3>${tx("At a glance", "De un vistazo")}</h3>
   <dl class="facts">

@@ -173,6 +173,9 @@ button { font: inherit; color: inherit; }
   padding: 4px 10px; cursor: pointer; font-size: 12.5px; white-space: nowrap;
   backdrop-filter: blur(6px);
 }
+.countries.more-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
+.countries.more-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
+.countries.more-l.more-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
 .countries button:hover { border-color: rgba(255,255,255,0.35); }
 .countries button.on { border-color: var(--accent); }
 .countries b { font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 4px; color: var(--accent); }
@@ -316,9 +319,9 @@ button { font: inherit; color: inherit; }
 .loading {
   position: fixed; inset: 0; display: grid; place-items: center;
   font: italic 20px var(--display); color: var(--muted); pointer-events: none;
-  transition: opacity .6s;
+  transition: opacity .6s, visibility 0s;
 }
-.loading.done { opacity: 0; }
+.loading.done { opacity: 0; visibility: hidden; transition: opacity .6s, visibility 0s .6s; }
 
 /* On wider screens search is a magnifier button; the box opens over the header when clicked
    (or with "/"), so the header stays on one row. Phones keep the full-width box on its own row. */
@@ -536,8 +539,8 @@ button { font: inherit; color: inherit; }
 }
 /* Anatomy loading screen: the logo bird hovers while the model downloads. */
 .an-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; z-index: 2;
-  pointer-events: none; transition: opacity .6s; color: var(--fg); }
-.an-loading.done { opacity: 0; }
+  pointer-events: none; transition: opacity .6s, visibility 0s; color: var(--fg); }
+.an-loading.done { opacity: 0; visibility: hidden; transition: opacity .6s, visibility 0s .6s; }
 .an-loading svg { width: 78px; height: 112px; color: var(--accent); animation: an-hover 1.1s ease-in-out infinite;
   filter: drop-shadow(0 0 18px rgba(127,224,196,0.45)); }
 .an-loading p { margin: 0; color: var(--muted); font-size: 15px; }
