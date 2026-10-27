@@ -37,8 +37,13 @@
   if (chosen === "es" || (!chosen && first.slice(0, 2) === "es")) location.replace("es/" + location.search + location.hash);
 } catch (e) {} })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
+<link rel="stylesheet" href="style.css?v=2026-10-26b">
 <script>
 // Start the data downloads now, while the scripts at the end of the page are still loading; app.js picks them up.
+// Placed after the stylesheet so the stylesheet arrives first and the loading text shows as early as before.
 // The world map (200 KB) is left to app.js, after the flock is drawn, so it doesn't slow the first screen.
 // Data files are re-checked with the server on every visit, so updates show up right away.
 (function () {
@@ -52,10 +57,6 @@
   for (var k in window.EARLY) window.EARLY[k].catch(function () {});
 })();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-26b">
 </head>
 <body>
 <canvas id="stage" aria-label="Todas las especies de colibrí, como figuras de colores"></canvas>
