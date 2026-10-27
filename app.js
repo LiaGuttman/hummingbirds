@@ -119,14 +119,18 @@ function calledNames(list) {
 
 /* ---------- Setup ---------- */
 
+// The page head started these downloads (window.EARLY); without it, they start here.
 // Data files are re-checked with the server on every visit, so updates show up right away.
+const early = window.EARLY || {};
+const getJSON = (key, url, opts) => early[key] || fetch(url, opts).then((r) => r.json());
+// The world map is only drawn on the World view, so the flock doesn't wait for it: birds are placed from
+// each country's coordinates in geo.js, and the map is downloaded once the flock is drawn (see addAtlas).
 Promise.all([
-  fetch(DATA_URL, { cache: "no-cache" }).then((r) => r.json()),
-  fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
-  fetch(PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
-  fetch(OWN_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
-  fetch(ML_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))
-]).then(([species, atlas, photos, own, ml]) => {
+  getJSON("species", DATA_URL, { cache: "no-cache" }),
+  getJSON("photos", PHOTOS_URL, { cache: "no-cache" }).catch(() => ({})),
+  getJSON("own", OWN_PHOTOS_URL, { cache: "no-cache" }).catch(() => ({})),
+  getJSON("ml", ML_PHOTOS_URL, { cache: "no-cache" }).catch(() => ({}))
+]).then(([species, photos, own, ml]) => {
   S.species = species;
   S.photos = photos;
   S.ownPhotos = own;
@@ -138,15 +142,6 @@ Promise.all([
     s.g = { x: 0, y: 0, r: 0, a: 0, fx: 0, fy: 0, fr: 0, fa: 0, cx: 0, cy: 0,
             to: null, t0: 0, dur: 1, heading: s._rest, flap: 0, sx: 0, sy: 0 };
   });
-  if (atlas) {
-    const isoById = {};
-    for (const [iso, v] of Object.entries(GEO)) isoById[v[2]] = iso;
-    M.features = topojson.feature(atlas, atlas.objects.countries).features.filter((f) => {
-      const [lon, lat] = d3.geoCentroid(f);
-      return lon > -175 && lon < -20 && lat > -62;
-    });
-    M.features.forEach((f) => { f.iso = isoById[f.id] || null; if (f.iso) M.byIso[f.iso] = f; });
-  }
   resize();
   species.forEach((s) => { s.g.x = s.g.sx = W * 0.4 + (Math.random() - 0.5) * 40; s.g.y = s.g.sy = H / 2 + (Math.random() - 0.5) * 40; });
   bindUI();
@@ -172,6 +167,7 @@ Promise.all([
   loading.setAttribute("aria-hidden", "true");
   loading.classList.add("done");
   setTimeout(() => loading.remove(), 700);
+  fetch(ATLAS_URL).then((r) => r.json()).then(addAtlas).catch(() => {});
   requestAnimationFrame(frame);
 });
 
@@ -209,8 +205,24 @@ function stageRect(view) {
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
 
+// Country shapes from the world map, kept to the Americas. Arrives after the flock is drawn (see Setup).
+function addAtlas(atlas) {
+  if (!atlas) return;
+  const isoById = {};
+  for (const [iso, v] of Object.entries(GEO)) isoById[v[2]] = iso;
+  M.features = topojson.feature(atlas, atlas.objects.countries).features.filter((f) => {
+    const [lon, lat] = d3.geoCentroid(f);
+    return lon > -175 && lon < -20 && lat > -62;
+  });
+  M.features.forEach((f) => { f.iso = isoById[f.id] || null; if (f.iso) M.byIso[f.iso] = f; });
+  buildMap();
+  // A country picked before the shapes arrived zooms to its point; now it can zoom to its shape.
+  if (S.view === "world" && countryFilter()) relayout({ quick: true });
+}
+
+// The projection and each country's anchor come from geo.js alone, so the World view works before
+// (or without) the map; the shapes, once loaded, add outlines and tighter zoom boxes.
 function buildMap() {
-  if (!M.features.length) return;
   const R = stageRect("world");
   M.proj = d3.geoMercator().fitExtent([[R.x0, R.y0], [R.x1, R.y1]],
     { type: "MultiPoint", coordinates: [[-124, 47], [-36, -55]] });

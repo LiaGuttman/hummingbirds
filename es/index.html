@@ -37,10 +37,25 @@
   if (chosen === "es" || (!chosen && first.slice(0, 2) === "es")) location.replace("es/" + location.search + location.hash);
 } catch (e) {} })();
 </script>
+<script>
+// Start the data downloads now, while the scripts at the end of the page are still loading; app.js picks them up.
+// The world map (200 KB) is left to app.js, after the flock is drawn, so it doesn't slow the first screen.
+// Data files are re-checked with the server on every visit, so updates show up right away.
+(function () {
+  var json = function (url, opts) { return fetch(url, opts).then(function (r) { return r.json(); }); };
+  window.EARLY = {
+    species: json("species.json", { cache: "no-cache" }),
+    photos: json("photos.json", { cache: "no-cache" }),
+    own: json("own_photos.json", { cache: "no-cache" }),
+    ml: json("ml_photos.json", { cache: "no-cache" })
+  };
+  for (var k in window.EARLY) window.EARLY[k].catch(function () {});
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-26a">
+<link rel="stylesheet" href="style.css?v=2026-10-26b">
 </head>
 <body>
 <canvas id="stage" aria-label="Todas las especies de colibrí, como figuras de colores"></canvas>
@@ -168,12 +183,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-26a"></script>
-<script src="traits.js?v=2026-10-26a"></script>
-<script src="i18n.js?v=2026-10-26a"></script>
-<script src="app.js?v=2026-10-26a"></script>
-<script src="anatomy.js?v=2026-10-26a"></script>
-<script src="comet.js?v=2026-10-26a"></script>
+<script src="geo.js?v=2026-10-26b"></script>
+<script src="traits.js?v=2026-10-26b"></script>
+<script src="i18n.js?v=2026-10-26b"></script>
+<script src="app.js?v=2026-10-26b"></script>
+<script src="anatomy.js?v=2026-10-26b"></script>
+<script src="comet.js?v=2026-10-26b"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
