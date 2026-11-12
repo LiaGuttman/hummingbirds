@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hummingbirds World: all 363 species, photos &amp; map</title>
+<title>Hummingbirds of the World – Every Species, by Country</title>
 <link rel="canonical" href="https://hummingbirds.world/">
 <link rel="alternate" hreflang="en" href="https://hummingbirds.world/">
 <link rel="alternate" hreflang="es" href="https://hummingbirds.world/es/">
 <link rel="alternate" hreflang="x-default" href="https://hummingbirds.world/">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Hummingbirds World", "url": "https://hummingbirds.world/", "description": "An interactive explorer of all 363 hummingbird species: by family tree, on the world map, by size and by conservation status.", "creator": {"@type": "Person", "name": "Lia Guttman"}, "inLanguage": "en"}</script>
-<meta name="description" content="Explore every hummingbird species on one screen: family tree, world map, sizes and conservation status, with a photo of each and a 3D anatomy page.">
+<meta name="description" content="All 363 hummingbird species in one explorer: family tree, world map, sizes and Red List status. Browse every species by country, with photos.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hummingbirds.world/">
 <meta property="og:title" content="Hummingbirds World">
@@ -37,7 +37,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-10-11b">
+<link rel="stylesheet" href="style.css?v=2026-11-12a">
 </head>
 <body>
 <canvas id="stage" aria-label="Every hummingbird species, shown as colored shapes"></canvas>
@@ -82,6 +82,26 @@
 <button class="sheet-btn" id="sheetBtn" type="button"></button>
 
 <div class="hint" id="hint"></div>
+<!-- Intro for first-time visitors and search engines; closes for good with × (remembered) or on the first tap on the flock. -->
+<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+  <button class="intro-close" id="introClose" aria-label="Close the introduction">×</button>
+  <h2 id="intro-title">Every hummingbird species in the world</h2>
+  <p>All 363 hummingbird species, on one screen: each shape is one species. Tap one for its photo and facts, or browse them <a href="countries/">by country</a>, see <a href="countries/#ranking">which country has the most</a>, or open the <a href="species/">full species list</a>.</p>
+</section>
+<script>
+(function () {
+  var box = document.getElementById("intro"), seen = false;
+  try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
+  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
+  box.hidden = false;
+  function close(remember) {
+    box.hidden = true;
+    if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}
+  }
+  document.getElementById("introClose").addEventListener("click", function () { close(true); });
+  document.getElementById("stage").addEventListener("pointerdown", function () { close(false); }, { once: true });
+})();
+</script>
 <div class="countries" id="countries" hidden></div>
 
 <aside class="panel" id="panel" aria-live="polite"></aside>
