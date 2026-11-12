@@ -403,7 +403,10 @@ body.card-open .intro { display: none; }
   /* A card covers the bottom of the screen: the hint, the country strip and the credits link hide behind it. */
   body.card-open .hint, body.card-open .countries, body.card-open .foot-links { visibility: hidden; }
   .hint { left: 16px; right: 160px; bottom: 12px; }
-  .intro { left: 16px; right: 16px; width: auto; bottom: 46px; }
+  .intro { left: 16px; right: 16px; width: auto; bottom: 46px; padding: 10px 44px 10px 14px; border-radius: 14px; }
+  .intro h2 { font-size: 16px; margin-bottom: 3px; }
+  .intro p { font-size: 13px; line-height: 1.45; }
+  .intro-close { top: 0; right: 0; }
   .panel {
     top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58vh;
     transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);

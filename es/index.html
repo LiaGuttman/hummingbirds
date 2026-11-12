@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <!-- Bump ?v= on each release so browsers fetch the new files instead of cached ones. -->
-<link rel="stylesheet" href="style.css?v=2026-11-12a">
+<link rel="stylesheet" href="style.css?v=2026-11-13a">
 <script>
 // Start the data downloads now, while the scripts at the end of the page are still loading; app.js picks them up.
 // Placed after the stylesheet so the stylesheet arrives first and the loading text shows as early as before.
@@ -102,7 +102,7 @@
 
 <div class="hint" id="hint"></div>
 <!-- Intro en español (scripts/build_spanish.py); closes for good with × (remembered) or on the first tap on the flock. -->
-<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+<section class="intro" id="intro" aria-labelledby="intro-title">
   <button class="intro-close" id="introClose" aria-label="Cerrar la introducción">×</button>
   <h2 id="intro-title">Todas las especies de colibríes del mundo</h2>
   <p>Las 363 especies de colibríes en una sola pantalla: cada figura es una especie. Toca una para ver su foto y sus datos, o explóralas <a href="es/paises/">por país</a>, mira <a href="es/paises/#ranking">qué país tiene más</a> o abre la <a href="es/especies/">lista completa de especies</a>.</p>
@@ -111,8 +111,7 @@
 (function () {
   var box = document.getElementById("intro"), seen = false;
   try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
-  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
-  box.hidden = false;
+  if (seen || /[?&](species|country|view)=/.test(location.search)) { box.hidden = true; return; }
   function close(remember) {
     box.hidden = true;
     if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}
@@ -204,12 +203,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="geo.js?v=2026-10-26b"></script>
-<script src="traits.js?v=2026-10-26b"></script>
-<script src="i18n.js?v=2026-10-26b"></script>
-<script src="app.js?v=2026-10-26b"></script>
-<script src="anatomy.js?v=2026-10-26b"></script>
-<script src="comet.js?v=2026-10-26b"></script>
+<script src="geo.js?v=2026-11-13a"></script>
+<script src="traits.js?v=2026-11-13a"></script>
+<script src="i18n.js?v=2026-11-13a"></script>
+<script src="app.js?v=2026-11-13a"></script>
+<script src="anatomy.js?v=2026-11-13a"></script>
+<script src="comet.js?v=2026-11-13a"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

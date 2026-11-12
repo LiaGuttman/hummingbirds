@@ -22,8 +22,8 @@ DESC = ("Las 363 especies de colibríes en un explorador: árbol familiar, mapa,
         "Explora cada especie por país, con fotos.")
 
 # The intro card under the header (index.html), translated as a whole.
-INTRO_EN = """<!-- Intro for first-time visitors and search engines; closes for good with × (remembered) or on the first tap on the flock. -->
-<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+INTRO_EN = """<!-- Intro for first-time visitors and search engines, in the HTML and shown by default; closes for good with × (remembered) or on the first tap on the flock. -->
+<section class="intro" id="intro" aria-labelledby="intro-title">
   <button class="intro-close" id="introClose" aria-label="Close the introduction">×</button>
   <h2 id="intro-title">Every hummingbird species in the world</h2>
   <p>All 363 hummingbird species, on one screen: each shape is one species. Tap one for its photo and facts, or browse them <a href="countries/">by country</a>, see <a href="countries/#ranking">which country has the most</a>, or open the <a href="species/">full species list</a>.</p>
@@ -32,8 +32,7 @@ INTRO_EN = """<!-- Intro for first-time visitors and search engines; closes for 
 (function () {
   var box = document.getElementById("intro"), seen = false;
   try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
-  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
-  box.hidden = false;
+  if (seen || /[?&](species|country|view)=/.test(location.search)) { box.hidden = true; return; }
   function close(remember) {
     box.hidden = true;
     if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}
@@ -44,7 +43,7 @@ INTRO_EN = """<!-- Intro for first-time visitors and search engines; closes for 
 </script>
 """
 INTRO_ES = """<!-- Intro en español (scripts/build_spanish.py); closes for good with × (remembered) or on the first tap on the flock. -->
-<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+<section class="intro" id="intro" aria-labelledby="intro-title">
   <button class="intro-close" id="introClose" aria-label="Cerrar la introducción">×</button>
   <h2 id="intro-title">Todas las especies de colibríes del mundo</h2>
   <p>Las 363 especies de colibríes en una sola pantalla: cada figura es una especie. Toca una para ver su foto y sus datos, o explóralas <a href="es/paises/">por país</a>, mira <a href="es/paises/#ranking">qué país tiene más</a> o abre la <a href="es/especies/">lista completa de especies</a>.</p>
@@ -53,8 +52,7 @@ INTRO_ES = """<!-- Intro en español (scripts/build_spanish.py); closes for good
 (function () {
   var box = document.getElementById("intro"), seen = false;
   try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
-  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
-  box.hidden = false;
+  if (seen || /[?&](species|country|view)=/.test(location.search)) { box.hidden = true; return; }
   function close(remember) {
     box.hidden = true;
     if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}

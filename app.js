@@ -200,8 +200,12 @@ function stageRect(view) {
   const y0 = mobile ? 180 : 104;
   const x1 = W - (mobile ? 16 : panelWidth() + 16 + 28);
   const hintTop = $("hint").getBoundingClientRect().top;
-  // Phones: stop above the hint (and on the map, above the country strip that sits on it), however tall it is.
-  const y1 = mobile && hintTop > 0 ? hintTop - (view === "world" ? 60 : 10) : H - (view === "world" ? 108 : 52);
+  // Phones: stop above the hint (and on the map, above the country strip that sits on it), however tall it is,
+  // and above the intro card while it's open (index.html), so it never covers the flock.
+  const intro = $("intro");
+  let introTop = mobile && intro && !intro.hidden ? intro.getBoundingClientRect().top : Infinity;
+  if (introTop - 10 < y0 + 200) introTop = Infinity;   // a short screen (a phone on its side): leave the flock its room
+  const y1 = mobile && hintTop > 0 ? Math.min(hintTop - (view === "world" ? 60 : 10), introTop - 10) : H - (view === "world" ? 108 : 52);
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
 
@@ -1258,10 +1262,12 @@ function bindPanels() {
     if (document.activeElement?.matches("input, textarea")) return;
     const r = $("hint").getBoundingClientRect();
     $("countries").style.bottom = W <= 800 ? `${Math.round(innerHeight - r.top + 8)}px` : "";
+    if ($("intro")) $("intro").style.bottom = W <= 800 ? `${Math.round(innerHeight - r.top + 8)}px` : "";
     if (S.species.length && Math.abs(stageRect(S.view).y1 - S.layoutY1) > 2) relayout({ quick: true });
   };
   refit();
   new ResizeObserver(refit).observe($("hint"));
+  if ($("intro")) new ResizeObserver(refit).observe($("intro"));   // closing the intro gives the flock its room back
   new ResizeObserver(stripEdges).observe($("countries"));
   document.fonts?.ready.then(refit);
   window.visualViewport?.addEventListener("resize", () => setTimeout(refit, 150));
