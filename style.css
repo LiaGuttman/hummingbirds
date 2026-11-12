@@ -162,6 +162,23 @@ button { font: inherit; color: inherit; }
   transition: opacity .4s;
 }
 
+/* Intro for first-time visitors (index.html): a small glass card at the bottom left, above the hint. */
+.intro {
+  position: fixed; left: 20px; bottom: 48px; z-index: 25; width: min(400px, calc(100vw - var(--panel-w) - 80px));
+  background: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 14px 44px 14px 16px;
+  backdrop-filter: blur(10px); box-shadow: 0 12px 40px rgba(0, 4, 20, 0.45);
+}
+.intro[hidden] { display: none; }
+.intro h2 { font: 600 19px/1.25 var(--display); margin: 0 0 6px; }
+.intro p { margin: 0; color: var(--muted); font-size: 14px; }
+.intro a { color: var(--accent); display: inline-block; padding: 2px 0; }
+.intro-close {
+  position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; background: none;
+  color: var(--muted); font-size: 22px; cursor: pointer; border-radius: 50%;
+}
+.intro-close:hover { color: var(--fg); background: rgba(255,255,255,0.06); }
+body.card-open .intro { display: none; }
+
 /* Country strip (world view) */
 .countries {
   position: fixed; left: 20px; right: calc(var(--panel-w) + 40px); bottom: 58px;
@@ -386,6 +403,7 @@ button { font: inherit; color: inherit; }
   /* A card covers the bottom of the screen: the hint, the country strip and the credits link hide behind it. */
   body.card-open .hint, body.card-open .countries, body.card-open .foot-links { visibility: hidden; }
   .hint { left: 16px; right: 160px; bottom: 12px; }
+  .intro { left: 16px; right: 16px; width: auto; bottom: 46px; }
   .panel {
     top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58vh;
     transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);

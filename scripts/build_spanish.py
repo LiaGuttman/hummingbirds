@@ -18,18 +18,63 @@ APP = Path(__file__).resolve().parent.parent  # the website repo (this folder's 
 SITE = "https://hummingbirds.world"
 CREDITS_EN_HASH = "da4a0eb237c3178c"
 
-DESC = ("Explora todas las especies de colibrí en una sola pantalla: árbol familiar, mapa, tamaños y estado de "
-        "conservación, con foto de cada una y anatomía en 3D.")
+DESC = ("Las 363 especies de colibríes en un explorador: árbol familiar, mapa, tamaños y Lista Roja. "
+        "Explora cada especie por país, con fotos.")
+
+# The intro card under the header (index.html), translated as a whole.
+INTRO_EN = """<!-- Intro for first-time visitors and search engines; closes for good with × (remembered) or on the first tap on the flock. -->
+<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+  <button class="intro-close" id="introClose" aria-label="Close the introduction">×</button>
+  <h2 id="intro-title">Every hummingbird species in the world</h2>
+  <p>All 363 hummingbird species, on one screen: each shape is one species. Tap one for its photo and facts, or browse them <a href="countries/">by country</a>, see <a href="countries/#ranking">which country has the most</a>, or open the <a href="species/">full species list</a>.</p>
+</section>
+<script>
+(function () {
+  var box = document.getElementById("intro"), seen = false;
+  try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
+  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
+  box.hidden = false;
+  function close(remember) {
+    box.hidden = true;
+    if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}
+  }
+  document.getElementById("introClose").addEventListener("click", function () { close(true); });
+  document.getElementById("stage").addEventListener("pointerdown", function () { close(false); }, { once: true });
+})();
+</script>
+"""
+INTRO_ES = """<!-- Intro en español (scripts/build_spanish.py); closes for good with × (remembered) or on the first tap on the flock. -->
+<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
+  <button class="intro-close" id="introClose" aria-label="Cerrar la introducción">×</button>
+  <h2 id="intro-title">Todas las especies de colibríes del mundo</h2>
+  <p>Las 363 especies de colibríes en una sola pantalla: cada figura es una especie. Toca una para ver su foto y sus datos, o explóralas <a href="es/paises/">por país</a>, mira <a href="es/paises/#ranking">qué país tiene más</a> o abre la <a href="es/especies/">lista completa de especies</a>.</p>
+</section>
+<script>
+(function () {
+  var box = document.getElementById("intro"), seen = false;
+  try { seen = localStorage.getItem("hw-intro") === "closed"; } catch (e) {}
+  if (seen || /[?&](species|country|view)=/.test(location.search)) return;
+  box.hidden = false;
+  function close(remember) {
+    box.hidden = true;
+    if (remember) try { localStorage.setItem("hw-intro", "closed"); } catch (e) {}
+  }
+  document.getElementById("introClose").addEventListener("click", function () { close(true); });
+  document.getElementById("stage").addEventListener("pointerdown", function () { close(false); }, { once: true });
+})();
+</script>
+"""
 
 REPLACE = [
+    (INTRO_EN, INTRO_ES),
     ('<html lang="en">', '<html lang="es">'),
     ('<meta charset="utf-8">', '<meta charset="utf-8">\n<!-- Spanish copy of index.html (scripts/build_spanish.py). The base makes every file load from the site root. -->\n<base href="../">'),
-    ('<title>Hummingbirds World: all 363 species, photos &amp; map</title>', '<title>Hummingbirds World: las 363 especies, fotos y mapa</title>'),
+    ('<title>Hummingbirds of the World – Every Species, by Country</title>', '<title>Colibríes del mundo: todas las especies, por país</title>'),
     ('<link rel="canonical" href="https://hummingbirds.world/">', '<link rel="canonical" href="https://hummingbirds.world/es/">'),
     ('"url": "https://hummingbirds.world/", "description": "An interactive explorer of all 363 hummingbird species: by family tree, on the world map, by size and by conservation status."',
      '"url": "https://hummingbirds.world/es/", "description": "Un explorador interactivo de las 363 especies de colibrí: por árbol familiar, en el mapa del mundo, por tamaño y por estado de conservación."'),
     ('"inLanguage": "en"', '"inLanguage": "es"'),
-    ('<meta name="description" content="Explore every hummingbird species on one screen: family tree, world map, sizes and conservation status, with a photo of each and a 3D anatomy page.">',
+    ('<meta name="description" content="All 363 hummingbird species in one explorer: family tree, world map, sizes and Red List status. Browse every species by country, with photos.">',
      f'<meta name="description" content="{DESC}">'),
     ('<meta property="og:url" content="https://hummingbirds.world/">', '<meta property="og:url" content="https://hummingbirds.world/es/">\n<meta property="og:locale" content="es_MX">'),
     ('<meta property="og:description" content="Explore every hummingbird species on one screen: family tree, world map, sizes and conservation status, with a photo of each and a 3D anatomy page.">',

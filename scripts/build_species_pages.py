@@ -22,7 +22,7 @@ from pathlib import Path
 APP = Path(__file__).resolve().parent.parent  # the website repo (this folder's parent)
 SITE = "https://hummingbirds.world"
 CONTACT = "lia@hummingbirds.world"
-VERSION = "2026-10-16a"   # bump when species.css changes, so browsers fetch the new file
+VERSION = "2026-11-12b"   # bump when species.css changes, so browsers fetch the new file
 
 STATUS_COLOR = {"LC": "#60c659", "NT": "#cce226", "VU": "#f9e814", "EN": "#fc7f3f", "CR": "#ff4a2e",
                 "EX": "#8a93a8", "DD": "#c9cfdc", "NE": "#c9cfdc"}
@@ -99,6 +99,9 @@ for s in species:
 # Countries with at least one species that lives there or visits regularly get their own page
 # (build_country_pages.py); places with only rare strays are listed in the country index only.
 paged = {d["c"] for s in species for d in s["dist"] if not FAINT.search(d["st"])}
+# Taxonomy pages (build_taxonomy_pages.py): every subfamily and tribe, and every genus with two or more species.
+tax_paged = ({s["subfamily"] for s in species} | {s["tribe"] for s in species if s["tribe"] != "—"}
+             | {g for g, members in by_genus.items() if len(members) >= 2})
 for k in ("slug_en", "slug_es"):
     assert len({s[k] for s in species}) == len(species), f"two species share a page address ({k})"
 
@@ -114,6 +117,7 @@ class Lang:
         self.code, self.es = code, code == "es"
         self.dir = "es/especies" if self.es else "species"
         self.cdir = "es/paises" if self.es else "countries"
+        self.tdir = "es/taxonomia" if self.es else "taxonomy"
         self.clade = ESD["clade"] if self.es else EN["clade"]
         self.tribe = ESD["tribe"] if self.es else EN["tribe"]
         self.iucn = ESD["iucn"] if self.es else EN["iucn"]
@@ -147,6 +151,10 @@ class Lang:
         """The country page's path from the site root, or None for places with only rare strays."""
         return f"{self.cdir}/{slug(self.country(c))}/" if c in paged else None
 
+    def tax_path(self, name):
+        """A subfamily, tribe or genus page's path from the site root, or None (genera with a single species have no page)."""
+        return f"{self.tdir}/{slug(name)}/" if name in tax_paged else None
+
     def habitat(self, h):
         return ESD["habitat"].get(h, h) if self.es else h
 
@@ -163,7 +171,7 @@ class Lang:
     def the(self, s):
         """'the Sword-billed Hummingbird' / 'el Colibrí Picoespada', 'la Coqueta Adornada'."""
         if not self.es:
-            return f"the {s['common']}"
+            return s["common"] if "'s " in s["common"] else f"the {s['common']}"   # "Anna's Hummingbird", not "the Anna's"
         return f"{'la' if s['es'].split(' ')[0] in FEMININE else 'el'} {s['es']}"
 
     def called(self, group):
@@ -210,6 +218,28 @@ def credit(ph, L):
     return f"{L.t('Photo', 'Foto')}: {e(ph.get('artist'))} · {lic}{src}"
 
 
+def license_text(ph, L):
+    return L.t(ph.get("license"), "Todos los derechos reservados") if ph.get("license") == "All rights reserved" else ph.get("license")
+
+
+def bird_tile(s, L, root, note=""):
+    """A species tile for country and taxonomy pages: photo (with its credit and license), names, Red List status."""
+    ph = (photo_list(s) or [None])[0]
+    if ph:
+        src = thumb(ph["src"], 500) if ph["src"].startswith("http") else root + ph["src"]
+        img = f'<img src="{e(src)}" alt="{e(L.name(s))} ({e(s['sci'])})" width="{ph.get("w", 4)}" height="{ph.get("h", 3)}" loading="lazy">'
+        lic = e(license_text(ph, L))
+        if ph.get("licenseUrl"):
+            lic = f'<a href="{e(ph["licenseUrl"])}" rel="noopener">{lic}</a>'
+        who = f'<a href="{e(ph["page"])}" rel="noopener">{e(ph.get("artist"))}</a>' if ph.get("page") else e(ph.get("artist"))
+        cr = f'<small class="cr">{L.t("Photo", "Foto")}: {who} · {lic}</small>'
+    else:
+        img, cr = f'<span class="nopic">{L.t("No free photo yet", "Aún sin foto libre")}</span>', ""
+    return (f'<li><a href="{root}{L.dir}/{L.slug(s)}/"><span class="pic">{img}</span><span class="nm">{e(L.name(s))}</span></a>'
+            f'<i class="sn">{e(s["sci"])}</i>{f"<small>{note}</small>" if note else ""}'
+            f'<span class="st" style="--st:{STATUS_COLOR.get(s["iucn"])}">{e(L.iucn.get(s["iucn"]))}</span>{cr}</li>')
+
+
 def image_object(ph, url):
     """schema.org ImageObject with the photographer and license, so search engines can show the credit."""
     obj = {"@type": "ImageObject", "contentUrl": url, "width": ph.get("w"), "height": ph.get("h"),
@@ -235,20 +265,24 @@ def summary(s, L, plain=False):
              if s["tribe"] != "—" else "")
     sub = f"{i(s['subfamily'])} ({t(L.clade[s['subfamily']])})"
     who = t(L.the(s))
-    parts = [L.t(f"{who[0].upper()}{who[1:]} ({i(s['sci'])}) is a hummingbird in the subfamily {sub}{tribe}.",
-                 f"{who[0].upper()}{who[1:]} ({i(s['sci'])}) es un colibrí de la subfamilia {sub}{tribe}.")]
+    parts = [L.t(f"{who[0].upper()}{who[1:]} ({i(s['sci'])}) is a hummingbird of the genus {i(s['genus'])}, in the subfamily {sub}{tribe}.",
+                 f"{who[0].upper()}{who[1:]} ({i(s['sci'])}) es un colibrí del género {i(s['genus'])}, de la subfamilia {sub}{tribe}.")]
     if s["mass"]:
         parts.append(L.t(f"It weighs about {s['mass']} g" + (f" and its bill is {s['bill']} mm long." if s["bill"] else "."),
                          f"Pesa alrededor de {s['mass']} g" + (f" y su pico mide {s['bill']} mm." if s["bill"] else ".")))
     if s["endemic"]:
-        parts.append(L.t(f"It is found only in {t(L.place(s['endemic']))}.", f"Solo vive en {t(L.place(s['endemic']))}."))
+        parts.append(L.t(f"It is endemic to {t(L.place(s['endemic']))}: it is found nowhere else.",
+                         f"Es una especie endémica de {t(L.place(s['endemic']))}: no vive en ningún otro lugar."))
     else:
         lives = [L.place(d["c"]) for d in sorted(s["dist"], key=lambda d: -(d["n"] or 0)) if not FAINT.search(d["st"])]
-        if len(lives) >= 9:
-            parts.append(L.t(f"It lives in {len(lives)} countries, including {t(L.and_list(lives[:5]))}.",
-                             f"Vive en {len(lives)} países, entre ellos {t(L.and_list(lives[:5]))}."))
+        k = len(lives)
+        if k >= 9:
+            parts.append(L.t(f"It lives in {k} countries, including {t(L.and_list(lives[:5]))}.",
+                             f"Vive en {k} países, entre ellos {t(L.and_list(lives[:5]))}."))
+        elif k >= 2:
+            parts.append(L.t(f"It lives in {k} countries: {t(L.and_list(lives))}.", f"Vive en {k} países: {t(L.and_list(lives))}."))
         elif lives:
-            parts.append(L.t(f"It lives in {t(L.and_list(lives))}.", f"Vive en {t(L.and_list(lives))}."))
+            parts.append(L.t(f"It lives in one country, {t(lives[0])}.", f"Vive en un solo país: {t(lives[0])}."))
     status = L.iucn.get(s["iucn"], s["iucn"])
     if s["iucn"] == "EX":
         parts.append(L.t("The IUCN Red List lists it as Extinct.", "La Lista Roja de la UICN lo clasifica como Extinto."))
@@ -259,15 +293,27 @@ def summary(s, L, plain=False):
     return " ".join(parts)
 
 
+def lineage(s):
+    """Subfamily, tribe (where it has one) and genus."""
+    return [s["subfamily"]] + ([s["tribe"]] if s["tribe"] != "—" else []) + [s["genus"]]
+
+
+def breadcrumbs(L, trail):
+    """schema.org BreadcrumbList from the home page: trail is [(name, url), ...]."""
+    items = [("Hummingbirds World", SITE + L.t("/", "/es/"))] + trail
+    return {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": k, "name": n, "item": u}
+                                                           for k, (n, u) in enumerate(items, 1)]}
+
+
 def fit(*options, limit):
     """The first option that fits in `limit` characters (search engines cut longer titles and descriptions)."""
     return next((o for o in options if len(o) <= limit), options[-1])
 
 
 def species_title(s, L):
-    """Up to 60 characters: the name and scientific name, plus what the page offers when there is room."""
+    """Up to 60 characters: the name and scientific name (people search both), plus what the page offers when there is room."""
     nm = f"{L.name(s)} ({s['sci']})"
-    return fit(nm + L.t(": size, range & photo", ": tamaño, área y foto"), nm, limit=60)
+    return fit(nm + L.t(" – Range & Facts", " – distribución y datos"), nm, limit=60)
 
 
 def species_description(s, L):
@@ -330,7 +376,7 @@ def header(L, root, other_href):
 
 def foot(L, root):
     return f"""<footer class="site">
-<p><a href="{root}{L.t('', 'es/')}">Hummingbirds World</a> · <a href="{root}{L.dir}/">{L.t('All 363 species', 'Las 363 especies')}</a> · <a href="{root}{L.cdir}/">{L.t('By country', 'Por país')}</a></p>
+<p><a href="{root}{L.t('', 'es/')}">Hummingbirds World</a> · <a href="{root}{L.dir}/">{L.t(f'All {len(species)} species', f'Las {len(species)} especies')}</a> · <a href="{root}{L.cdir}/">{L.t('By country', 'Por país')}</a> · <a href="{root}{L.cdir}/#ranking">{L.t('Which country has the most?', '¿Qué país tiene más?')}</a></p>
 <p>{L.t('A personal, non-commercial project by Lia Guttman. Full data sources and photo credits are listed under About &amp; credits in the explorer.',
         'Un proyecto personal y sin fines comerciales de Lia Guttman. Las fuentes de datos y los créditos de las fotos completos están en «Acerca del sitio», en el explorador.')}</p>
 <p>{L.t('Contact', 'Contacto')}: <a href="mailto:{CONTACT}">{CONTACT}</a></p>
@@ -396,12 +442,13 @@ def species_page(s, L):
     if video_html:
         video_html = f"\n<h2>{L.t('Video', 'Video')}</h2>\n{video_html}\n"
 
-    tribe_row = (f'<li><span class="rank">{L.t("Tribe", "Tribu")}</span> <i>{e(s["tribe"])}</i> <em>{e(L.tribe[s["tribe"]])}</em></li>'
+    tx = lambda name: f'<a href="{root}{L.tax_path(name)}"><i>{e(name)}</i></a>' if L.tax_path(name) else f"<i>{e(name)}</i>"
+    tribe_row = (f'<li><span class="rank">{L.t("Tribe", "Tribu")}</span> {tx(s["tribe"])} <em>{e(L.tribe[s["tribe"]])}</em></li>'
                  if s["tribe"] != "—" else "")
     called = ", ".join(L.called(by_genus[s["genus"]]))
     places = (f'<ol class="places"><li><span class="rank">{L.t("Family", "Familia")}</span> <i>Trochilidae</i> <em>{L.t("hummingbirds", "colibríes")}</em></li>'
-              f'<li><span class="rank">{L.t("Subfamily", "Subfamilia")}</span> <i>{e(s["subfamily"])}</i> <em>{e(L.clade[s["subfamily"]])}</em></li>{tribe_row}'
-              f'<li><span class="rank">{L.t("Genus", "Género")}</span> <i>{e(s["genus"])}</i>{f" <em>{e(called)}</em>" if called else ""}</li></ol>')
+              f'<li><span class="rank">{L.t("Subfamily", "Subfamilia")}</span> {tx(s["subfamily"])} <em>{e(L.clade[s["subfamily"]])}</em></li>{tribe_row}'
+              f'<li><span class="rank">{L.t("Genus", "Género")}</span> {tx(s["genus"])}{f" <em>{e(called)}</em>" if called else ""}</li></ol>')
 
     gnote = (ESD["notes"] if L.es else NOTES_EN)["genus"].get(s["genus"])
     if gnote:
@@ -420,6 +467,9 @@ def species_page(s, L):
     rel_title = (L.t(f"Others in the genus <i>{e(s['genus'])}</i>", f"Otros del género <i>{e(s['genus'])}</i>") if rel and rel[0]["genus"] == s["genus"]
                  else L.t(f"Nearest relatives, in {e(L.group_name(s))}", f"Parientes más cercanos, en {e(L.group_name(s))}"))
     rel_html = "".join(f'<li><a href="../{L.slug(r)}/">{e(L.name(r))}</a> <i>{e(r["sci"])}</i></li>' for r in rel)
+    group_page = L.tax_path(s["genus"]) or L.tax_path(s["tribe"]) or L.tax_path(s["subfamily"])
+    group_nm = s["genus"] if L.tax_path(s["genus"]) else s["tribe"] if L.tax_path(s["tribe"]) else s["subfamily"]
+    rel_more = f'<p class="note-s"><a href="{root}{group_page}">{L.t(f"All species of <i>{e(group_nm)}</i>", f"Todas las especies de <i>{e(group_nm)}</i>")}</a></p>'
 
     alt_name = L.t(s["es"] and f'Spanish: {e(s["es"])}', f'Inglés: {e(s["common"])}')
     names = [alt_name, s["ioc_name"] and f'IOC: {e(s["ioc_name"])}']
@@ -429,16 +479,14 @@ def species_page(s, L):
          "alternateName": list(dict.fromkeys(n for n in [name, s["common"], s["es"], s["ioc_name"]] if n)),
          "parentTaxon": {"@type": "Taxon", "name": s["genus"], "taxonRank": "genus"},
          **({"image": image_object(first, img_abs)} if img_abs else {})},
-        {"@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Hummingbirds World", "item": SITE + L.t("/", "/es/")},
-            {"@type": "ListItem", "position": 2, "name": L.t("All species", "Todas las especies"), "item": f"{SITE}/{L.dir}/"},
-            {"@type": "ListItem", "position": 3, "name": name, "item": url}]}]}
+        breadcrumbs(L, [(L.t("All species", "Todas las especies"), f"{SITE}/{L.dir}/")]
+                    + [(g, f"{SITE}/{L.tax_path(g)}") for g in lineage(s) if L.tax_path(g)] + [(name, url)])]}
     extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
     ebird = f"https://ebird.org/species/{e(s['code'])}{L.t('', '?siteLanguage=es_MX')}"
     other_href = "../" * depth + f"{other.dir}/{other.slug(s)}/"
 
     return head(L, species_title(s, L), desc, url, alternates, root, img_abs, extra) + header(L, root, other_href) + f"""<main class="sp">
-<nav class="crumbs" aria-label="{L.t('Breadcrumb', 'Ruta')}"><a href="../">{L.t('All species', 'Todas las especies')}</a> › <i>{e(s['subfamily'])}</i>{f" › <i>{e(s['tribe'])}</i>" if s['tribe'] != "—" else ""} › <i>{e(s['genus'])}</i></nav>
+<nav class="crumbs" aria-label="{L.t('Breadcrumb', 'Ruta')}"><a href="../">{L.t('All species', 'Todas las especies')}</a>{"".join(f" › {tx(g)}" for g in lineage(s))}</nav>
 {photo}
 <h1>{e(name)}</h1>
 <p class="sci"><i>{e(s['sci'])}</i> <span>{e(s['authority'])}</span></p>
@@ -457,6 +505,7 @@ def species_page(s, L):
 
 <h2>{rel_title}</h2>
 <ul class="rel">{rel_html}</ul>
+{rel_more}
 
 <h2>{L.t('Sources', 'Fuentes')}</h2>
 <p class="sources">{L.t(
@@ -480,10 +529,11 @@ def index_page(L):
     out = []
     for sub in dict.fromkeys(s["subfamily"] for s in sorted(species, key=lambda x: x["seq"])):
         members = [s for s in species if s["subfamily"] == sub]
-        out.append(f'<section><h2><i>{e(sub)}</i> <em>{e(L.clade[sub])} · {len(members)} {L.t("species", "especies")}</em></h2>')
+        out.append(f'<section><h2><a href="{root}{L.tax_path(sub)}"><i>{e(sub)}</i></a> <em>{e(L.clade[sub])} · {len(members)} {L.t("species", "especies")}</em></h2>')
         for g in dict.fromkeys(s["genus"] for s in sorted(members, key=lambda x: x["seq"])):
             items = "".join(f'<li><a href="{L.slug(s)}/">{e(L.name(s))}</a></li>' for s in sorted(by_genus[g], key=lambda x: x["seq"]))
-            out.append(f'<h3><i>{e(g)}</i></h3><ul class="list">{items}</ul>')
+            gname = f'<a href="{root}{L.tax_path(g)}"><i>{e(g)}</i></a>' if L.tax_path(g) else f"<i>{e(g)}</i>"
+            out.append(f'<h3>{gname}</h3><ul class="list">{items}</ul>')
         out.append("</section>")
     title = L.t("Hummingbird species list: all 363, with photos", "Lista de especies de colibrí: las 363, con fotos")
     desc = L.t("The complete list of the world's 363 hummingbird species (family Trochilidae), by subfamily and genus, each with a photo, weight and Red List status.",
@@ -491,9 +541,11 @@ def index_page(L):
     lede = L.t(f'Every species in the hummingbird family, Trochilidae, as recognized in the eBird/Clements taxonomy. They are grouped by subfamily and genus, in taxonomic order. <a href="{root}">Explore them as a flock</a> by family tree, on the world map, by size and by conservation status.',
                f'Todas las especies de la familia de los colibríes, Trochilidae, según la taxonomía eBird/Clements, con sus nombres en español de eBird México. Están agrupadas por subfamilia y género, en orden taxonómico. <a href="{root}es/">Explóralas como una parvada</a>: por árbol familiar, en el mapa del mundo, por tamaño y por estado de conservación.')
     ordered = sorted(species, key=lambda x: x["seq"])
-    ld = {"@context": "https://schema.org", "@type": "ItemList", "name": title, "url": f"{SITE}/{L.dir}/", "inLanguage": L.code,
-          "numberOfItems": len(ordered), "itemListOrder": "https://schema.org/ItemListUnordered",
-          "itemListElement": [{"@type": "ListItem", "position": i, "url": L.url(s), "name": L.name(s)} for i, s in enumerate(ordered, 1)]}
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "ItemList", "name": title, "url": f"{SITE}/{L.dir}/", "inLanguage": L.code,
+         "numberOfItems": len(ordered), "itemListOrder": "https://schema.org/ItemListUnordered",
+         "itemListElement": [{"@type": "ListItem", "position": i, "url": L.url(s), "name": L.name(s)} for i, s in enumerate(ordered, 1)]},
+        breadcrumbs(L, [(L.t("All species", "Todas las especies"), f"{SITE}/{L.dir}/")])]}
     extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
     return (head(L, title, desc, f"{SITE}/{L.dir}/", alternates, root, None, extra) + header(L, root, root + other.dir + "/")
             + f"""<main class="sp idx">
@@ -532,6 +584,8 @@ if __name__ == "__main__":
 
 Each country in the Americas with hummingbirds has its own page: how many species live there, how it ranks against other countries, its endemic species, their Red List status and their sizes.
 
+Each subfamily, tribe and genus (with two or more species) has its own page listing its species with photos, where they live and how many are threatened.
+
 Each species has its own page with its names (English, scientific, Spanish), its place in the family (subfamily, tribe, genus), weight, bill length, habitat, movement, the countries it lives in, its IUCN Red List status and trend, and a credited photo.
 
 Sources: eBird/Clements Checklist (names and taxonomy; Spanish names from eBird Mexico), Dickinson & Remsen 2013 and McGuire et al. 2014 (subfamilies and tribes), AVONET (Tobias et al. 2022; weight, bill, habitat, movement), BirdLife International DataZone and eBird records via GBIF (countries), BirdLife International / IUCN Red List (status and trend).
@@ -540,7 +594,8 @@ Sources: eBird/Clements Checklist (names and taxonomy; Spanish names from eBird 
 
 - [All 363 species]({SITE}/species/): every species, grouped by subfamily and genus, linking to its page
 - [Las 363 especies]({SITE}/es/especies/): the same in Mexican Spanish
-- [Hummingbirds by country]({SITE}/countries/): every country ranked by number of species and endemics, linking to its page ([en español]({SITE}/es/paises/))
+- [Hummingbirds by country]({SITE}/countries/): which country has the most hummingbird species; every country ranked by number of species and endemics, linking to its page ([en español]({SITE}/es/paises/))
+- [Mellisugini, the bees]({SITE}/taxonomy/mellisugini/) and the other subfamilies, tribes and genera under {SITE}/taxonomy/ ([en español]({SITE}/es/taxonomia/mellisugini/))
 - [The explorer]({SITE}/): the interactive site, with family tree, world map, size and status views and a 3D anatomy page ([en español]({SITE}/es/))
 """)
     n = len(only) if only else len(species)

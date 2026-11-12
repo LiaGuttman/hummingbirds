@@ -16,7 +16,7 @@ from collections import Counter
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 from build_species_pages import (APP, SITE, STATUS_COLOR, FAINT, L_EN, L_ES, e, slug, thumb, species,
-                                 photo_list, head, header, foot, write, paged, fit)
+                                 photo_list, head, header, foot, write, paged, fit, bird_tile)
 
 # Groups in taxonomic order: the subfamily, or its tribe where it has tribes. Colors as in the explorer.
 GROUPS = [("Florisuginae", "#ff6a3d"), ("Phaethornithinae", "#c49d5f"), ("Polytminae", "#2fe0a0"),
@@ -70,6 +70,40 @@ def sp_link(L, s, root):
     return f'{root}{L.dir}/{L.slug(s)}/'
 
 
+def notable(here, iso):
+    """Species to name first in the intro and description: those found only here, then the ones with the most
+    eBird records in the country. Only species that live there count, unless the country has nothing but visitors."""
+    lives = [x for x in here if presence(x[1]["st"]) == "lives"] or here
+    by_records = lambda x: -(x[1]["n"] or 0)
+    ends = sorted((x for x in lives if x[0]["endemic"] == names[iso]), key=by_records)
+    rest = sorted((x for x in lives if x[0]["endemic"] != names[iso]), key=by_records)
+    return [s for s, d in ends + rest]
+
+
+def has_photo(s):
+    return bool(photo_list(s))
+
+
+def country_descriptions(L, cname, n, k, top, photos_line):
+    """Description options, longest first: the count, the first species to name, and what the page shows."""
+    if k:
+        shows = L.t(f"scientific names and {'its 1 endemic' if k == 1 else f'the {k} endemics'}",
+                    f"nombres científicos y {'su especie endémica' if k == 1 else f'las {k} especies endémicas'}")
+    else:
+        shows = L.t("scientific names", "nombres científicos")
+    see = L.t(f"See {'photos, ' if photos_line else ''}{shows}.", f"{'Fotos, ' if photos_line else ''}{shows}.").replace(", scientific names.", " and scientific names.").replace(", nombres científicos.", " y nombres científicos.")
+    see = see[0].upper() + see[1:]
+    out = []
+    for m in ((n,) if n <= 2 else (3, 2, 1)):
+        names_ = L.and_list(L.the(s) for s in top[:m])
+        if n <= 2:
+            first = L.t(f"{n} hummingbird species are found in {cname}: {names_}.", f"En {cname} hay {n} especies de colibríes: {names_}.")
+        else:
+            first = L.t(f"{n} hummingbird species are found in {cname}, including {names_}.", f"En {cname} hay {n} especies de colibríes, como {names_}.")
+        out += [f"{first} {see}", first]
+    return [o for o in out if o.endswith(see)] + [o for o in out if not o.endswith(see)]
+
+
 def country_page(iso, L):
     depth = dirs(L).count("/") + 2
     root = "../" * depth
@@ -94,13 +128,17 @@ def country_page(iso, L):
     e_above = [names[i] for i, v in sorted(endemic_n.items(), key=lambda x: -x[1]) if v > len(ends)]
 
     # ---- Lede, built from the numbers only.
-    lede = L.t(f"{n} of the world's 363 hummingbird species live in or visit {e(cname)}, ",
-               f"{n} de las 363 especies de colibrí del mundo viven en {e(cname)} o lo visitan, ")
-    if ends:
-        lede += L.t(f"and {len(ends)} of them {'is' if len(ends) == 1 else 'are'} found nowhere else on Earth.",
-                    f"y {len(ends)} de ellas no {'vive' if len(ends) == 1 else 'viven'} en ningún otro lugar del planeta.")
+    firsts = notable(here, iso)
+    two = L.and_list(e(L.the(s)) for s in firsts[:2])
+    if n <= 2:
+        lede = L.t(f"{n} of the world's {len(species)} hummingbird species live in or visit {e(cname)}: {two}.",
+                   f"{n} de las {len(species)} especies de colibrí del mundo viven en {e(cname)} o lo visitan: {two}.")
     else:
-        lede = lede.rstrip(", ") + "."
+        lede = L.t(f"{n} of the world's {len(species)} hummingbird species live in or visit {e(cname)}, among them {two}.",
+                   f"{n} de las {len(species)} especies de colibrí del mundo viven en {e(cname)} o lo visitan, entre ellas {two}.")
+    if ends:
+        lede += " " + L.t(f"{len(ends)} of them {'is' if len(ends) == 1 else 'are'} found nowhere else on Earth.",
+                          f"{len(ends)} de ellas no {'vive' if len(ends) == 1 else 'viven'} en ningún otro lugar del planeta.")
     if ends and e_rank <= 5:
         lede += " " + (L.t(f"Only {L.and_list(e(L.place(c)) for c in e_above)} {'has' if len(e_above) == 1 else 'have'} more species of their own.",
                            f"Solo {L.and_list(e(L.place(c)) for c in e_above)} {'tiene' if len(e_above) == 1 else 'tienen'} más especies propias.")
@@ -142,21 +180,12 @@ def country_page(iso, L):
     tie_en = (f", tied with {e(L.and_list(L.place(c) for c in tied))}" if len(tied) <= 3 else f", tied with {len(tied)} others") if tied else ""
     tie_es = (f", empatado con {e(L.and_list(L.place(c) for c in tied))}" if len(tied) <= 3 else f", empatado con otros {len(tied)}") if tied else ""
     rank_note = L.t(f"{up(e(cname))} is {ordinal(L, rank)} of the {len(count)} countries and territories with hummingbirds{tie_en}. "
-                    f'<a href="../">See them all</a>.',
+                    f'<a href="../">See how {e(cname)} ranks</a> against every country.',
                     f"{up(e(cname))} ocupa el lugar {ordinal(L, rank)} entre los {len(count)} países y territorios con colibríes{tie_es}. "
-                    f'<a href="../">Verlos todos</a>.')
+                    f'<a href="../">Ve cómo se compara {e(cname)}</a> con todos los países.')
 
     # ---- Endemics, with photos.
-    def tile(s):
-        ph = (photo_list(s) or [None])[0]
-        if ph:
-            src = thumb(ph["src"], 500) if ph["src"].startswith("http") else root + ph["src"]
-            img = f'<img src="{e(src)}" alt="{e(L.name(s))} ({e(s['sci'])})" width="{ph.get("w", 4)}" height="{ph.get("h", 3)}" loading="lazy">'
-            cr = f'<small class="cr">{e(ph.get("artist"))} · {e(L.t(ph.get("license"), "Todos los derechos reservados") if ph.get("license") == "All rights reserved" else ph.get("license"))}</small>'
-        else:
-            img, cr = f'<span class="nopic">{L.t("No free photo yet", "Aún sin foto libre")}</span>', ""
-        return (f'<li><a href="{sp_link(L, s, root)}"><span class="pic">{img}</span><span class="nm">{e(L.name(s))}</span></a>'
-                f'<span class="st" style="--st:{STATUS_COLOR.get(s["iucn"])}">{e(L.iucn.get(s["iucn"]))}</span>{cr}</li>')
+    tile = lambda s, note="": bird_tile(s, L, root, note)
     ends_html = (f'<h2>{L.t(f"Found only in {e(cname)}", f"Solo viven en {e(cname)}")} · {len(ends)}</h2><ul class="birds">{"".join(tile(s) for s in ends)}</ul>'
                  if ends else "")
 
@@ -183,8 +212,9 @@ def country_page(iso, L):
         if not s["mass"]:
             continue
         b = round(pos(s["mass"]) / 2.2)
-        dots.append(f'<a class="dot" href="{sp_link(L, s, root)}" title="{e(L.name(s))}, {s["mass"]} g" '
-                    f'style="left:{pos(s["mass"]):.2f}%;--k:{bins[b]};background:{COLOR[group_of(s)]}"></a>')
+        # Not links: dots this small can't be tapped reliably, and every species is linked in the photo grid below.
+        dots.append(f'<span class="dot" title="{e(L.name(s))}, {s["mass"]} g" '
+                    f'style="left:{pos(s["mass"]):.2f}%;--k:{bins[b]};background:{COLOR[group_of(s)]}"></span>')
         bins[b] += 1
     ticks = "".join(f'<span style="left:{pos(t):.2f}%">{t} g</span>' for t in (2, 3, 5, 10, 20) if W_MIN <= t <= W_MAX)
     weighed = [s for s, d in here if s["mass"]]
@@ -195,7 +225,7 @@ def country_page(iso, L):
     else:
         size_note = L.t(f"From {e(L.the(light))}, {light['mass']} g, to {e(L.the(heavy))}, {heavy['mass']} g. ",
                         f"Desde {e(L.the(light))}, de {light['mass']} g, hasta {e(L.the(heavy))}, de {heavy['mass']} g. ") + scale
-    size_html = (f'<div class="sizes" style="--n:{max(bins.values())}"><div class="plot">{"".join(dots)}</div><div class="axis">{ticks}</div></div>'
+    size_html = (f'<div class="sizes" style="--n:{max(bins.values())}"><div class="plot" role="img" aria-label="{L.t("Weights of the species here, on a log scale", "Pesos de las especies de aquí, en escala logarítmica")}">{"".join(dots)}</div><div class="axis">{ticks}</div></div>'
                  f'<p class="note-s">{size_note}</p>')
 
     # ---- Visitors and the full list.
@@ -211,20 +241,19 @@ def country_page(iso, L):
         members = [(s, d) for s, d in here if group_of(s) == g]
         if not members:
             continue
-        lis = "".join(f'<li><a href="{sp_link(L, s, root)}">{e(L.name(s))}</a>'
-                      + (f' <small>{L.t("only here", "solo aquí")}</small>' if only_here(s) else "")
-                      + (f' <small>{e(L.presence(d["st"]))}</small>' if pres[s["code"]] != "lives" else "") + "</li>" for s, d in members)
-        full.append(f'<h3><span class="sw" style="background:{col}"></span><i>{e(g)}</i> <em>{e(group_label(L, g))} · {len(members)}</em></h3><ul class="list">{lis}</ul>')
+        lis = "".join(tile(s, " · ".join(x for x in (L.t("only here", "solo aquí") if only_here(s) else "",
+                                                       e(L.presence(d["st"])) if pres[s["code"]] != "lives" else "") if x))
+                      for s, d in members)
+        full.append(f'<h3><span class="sw" style="background:{col}"></span><i>{e(g)}</i> <em>{e(group_label(L, g))} · {len(members)}</em></h3><ul class="birds">{lis}</ul>')
 
     # ---- Page.
     url = page_url(L, iso)
     alternates = [("en", page_url(L_EN, iso)), ("es", page_url(L_ES, iso)), ("x-default", page_url(L_EN, iso))]
     title = L.t(f"Hummingbirds of {cname}: all {n} species", f"Colibríes de {cname}: las {n} especies")
-    title = fit(title + " · Hummingbirds World", title, limit=60)
-    only = (L.t(f", including {len(ends)} found nowhere else", f", entre ellas {len(ends)} que no {'vive' if len(ends) == 1 else 'viven'} en ningún otro lugar") if ends else "")
-    desc = fit(L.t(f"All {n} hummingbird species of {cname}{only}, with photos, sizes and Red List status.",
-                   f"Las {n} especies de colibrí de {cname}{only}, con fotos, tamaños y estado en la Lista Roja."),
-               L.t(f"All {n} hummingbird species of {cname}{only}.", f"Las {n} especies de colibrí de {cname}{only}."), limit=155)
+    photos_line = any(has_photo(s) for s, d in here)
+    title = fit(*([title + L.t(", with photos", " con fotos")] if photos_line else []), title + " · Hummingbirds World", title,
+                L.t(f"Hummingbirds of {cname}: {n} species", f"Colibríes de {cname}: {n} especies"), limit=60)
+    desc = fit(*country_descriptions(L, cname, n, len(ends), firsts, photos_line), limit=155)
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "@id": url, "url": url, "name": title.split(" · ")[0], "inLanguage": L.code,
          "about": {"@type": "Country", "name": cname}},
@@ -277,6 +306,38 @@ def country_page(iso, L):
 """ + foot(L, root)
 
 
+SORT_JS = """<script>
+// Sortable ranking: click a column heading to sort by it, click again to reverse.
+document.querySelectorAll("table.sortable").forEach(function (t) {
+  var body = t.tBodies[0];
+  t.querySelectorAll("th button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var th = btn.parentNode, now = th.getAttribute("aria-sort");
+      var dir = now === "ascending" ? "descending" : now === "descending" ? "ascending" : th.dataset.first;
+      t.querySelectorAll("th").forEach(function (h) { h.removeAttribute("aria-sort"); });
+      th.setAttribute("aria-sort", dir);
+      var col = th.cellIndex, num = th.dataset.type === "num", sign = dir === "ascending" ? 1 : -1;
+      var val = function (r) { var c = r.cells[col]; return c.dataset.v !== undefined ? c.dataset.v : c.textContent; };
+      Array.prototype.slice.call(body.rows).sort(function (x, y) {
+        var r = num ? val(x) - val(y) : val(x).localeCompare(val(y), document.documentElement.lang);
+        return sign * r || x.dataset.i - y.dataset.i;
+      }).forEach(function (r) { body.appendChild(r); });
+    });
+  });
+});
+</script>
+"""
+
+
+def ranking_sentence(L, order, html_=True):
+    """'Colombia has the most hummingbird species (166), followed by Ecuador (133) and Peru (130).'"""
+    esc = e if html_ else (lambda x: x)
+    (c1, n1), (c2, n2), (c3, n3) = [(esc(L.place(names[i])), v) for i, v in order[:3]]
+    c1 = c1[0].upper() + c1[1:]
+    return L.t(f"{c1} has the most hummingbird species ({n1}), followed by {c2} ({n2}) and {c3} ({n3}).",
+               f"{c1} es el país con más especies de colibríes ({n1}), seguido de {c2} ({n2}) y {c3} ({n3}).")
+
+
 def index_page(L):
     root = "../" * (L.cdir.count("/") + 1)
     other = L_EN if L.es else L_ES
@@ -285,44 +346,59 @@ def index_page(L):
     top = order[0][1]
     up = lambda x: x[0].upper() + x[1:]
     rows = []
-    for iso, v in order:
+    for k, (iso, v) in enumerate(order):
         c = names[iso]
-        nm = f'<a href="{root}{L.country_path(c)}">{e(L.country(c))}</a>' if L.country_path(c) else f'{e(L.country(c))} <small>{L.t("rare visitors only", "solo visitantes raros")}</small>'
-        rows.append(f'<li><span class="cname">{nm}</span><span class="track"><span class="fill" style="width:{v / top * 100:.1f}%"></span></span>'
-                    f'<span class="num">{v}</span><span class="num">{endemic_n.get(iso) or "–"}</span><span class="num">{threat.get(iso) or "–"}</span></li>')
-    head_row = (f'<li class="hd"><span class="cname"></span><span></span><span class="num">{L.t("Species", "Especies")}</span>'
-                f'<span class="num">{L.t("Only here", "Solo aquí")}</span><span class="num">{L.t("Threatened", "Amenazadas")}</span></li>')
+        rank = 1 + sum(1 for w in count.values() if w > v)
+        nm = (f'<a href="{root}{L.country_path(c)}">{e(L.country(c))}</a>' if L.country_path(c)
+              else f'{e(L.country(c))} <small>{L.t("rare visitors only", "solo visitantes raros")}</small>')
+        rows.append(f'<tr data-i="{k}"><td class="num" data-v="{rank}">{rank}</td><td data-v="{e(L.country(c))}">{nm}</td>'
+                    f'<td class="num" data-v="{v}"><span class="bar" style="width:{v / top * 100:.1f}%"></span>{v}</td>'
+                    f'<td class="num" data-v="{endemic_n.get(iso, 0)}">{endemic_n.get(iso) or "–"}</td>'
+                    f'<td class="num" data-v="{threat.get(iso, 0)}">{threat.get(iso) or "–"}</td></tr>')
+    th = lambda label, first, typ="num", sort="": (f'<th scope="col" data-type="{typ}" data-first="{first}"{sort}>'
+                                                     f'<button type="button">{label}</button></th>')
+    rank_th = th("#", "ascending", sort=' aria-sort="ascending"')
+    table = (f'<table class="sortable ranking"><caption>{L.t("Countries and territories by number of hummingbird species. Select a column heading to sort.", "Países y territorios por número de especies de colibríes. Elige un encabezado para ordenar.")}</caption>'
+             f'<thead><tr>{rank_th}'
+             f'{th(L.t("Country", "País"), "ascending", "text")}{th(L.t("Species", "Especies"), "descending")}'
+             f'{th(L.t("Only here", "Solo aquí"), "descending")}{th(L.t("Threatened", "Amenazadas"), "descending")}</tr></thead>'
+             f'<tbody>{"".join(rows)}</tbody></table>')
     n_ctry = len(count)
     best_e = max(endemic_n, key=endemic_n.get)
-    title = L.t("Which country has the most hummingbird species?", "¿Qué país tiene más especies de colibrí?")
-    (c1, n1), (c2, n2), (c3, n3) = [(L.place(names[i]), v) for i, v in order[:3]]
-    desc = L.t(f"{c1[0].upper() + c1[1:]} has the most hummingbird species ({n1}), then {c2} ({n2}) and {c3} ({n3}). All {n_ctry} countries and territories, ranked.",
-               f"{c1[0].upper() + c1[1:]} tiene más especies de colibrí ({n1}), seguida de {c2} ({n2}) y {c3} ({n3}). Los {n_ctry} países y territorios, por número de especies.")
+    title = L.t("Which country has the most hummingbird species?", "¿Qué país tiene más especies de colibríes?")
+    answer = ranking_sentence(L, order, html_=False)
+    desc = fit(answer + L.t(f" All {n_ctry} countries and territories with hummingbirds, ranked.", f" Los {n_ctry} países y territorios con colibríes, por número de especies."),
+               answer + L.t(f" All {n_ctry} countries, ranked.", f" Los {n_ctry} países, por número de especies."), answer, limit=155)
     lead, lead_e = up(e(L.place(names[order[0][0]]))), e(L.place(names[best_e]))
     if best_e == order[0][0]:
-        most = L.t(f"{lead} has both the most species, {top}, and the most found nowhere else, {endemic_n[best_e]}. ",
-                   f"{lead} tiene a la vez más especies, {top}, y más especies que no viven en ningún otro lugar, {endemic_n[best_e]}. ")
+        most = L.t(f"{lead} also has the most species found nowhere else, {endemic_n[best_e]}. ",
+                   f"{lead} también tiene más especies que no viven en ningún otro lugar, {endemic_n[best_e]}. ")
     else:
-        most = L.t(f"{lead} has the most species, {top}, and {lead_e} the most found nowhere else, {endemic_n[best_e]}. ",
-                   f"{lead} tiene más especies, {top}, y {lead_e} más especies que no viven en ningún otro lugar, {endemic_n[best_e]}. ")
-    lede = (L.t(f"The 363 hummingbird species live in {n_ctry} countries and territories, all of them in the Americas. ",
-                f"Las 363 especies de colibrí viven en {n_ctry} países y territorios, todos en América. ") + most
-            + L.t("Open a country to see which hummingbirds live there and how they compare.",
-                  "Abre un país para ver qué colibríes viven ahí y cómo se comparan."))
+        most = L.t(f"{lead_e[0].upper() + lead_e[1:]} has the most found nowhere else, {endemic_n[best_e]}. ",
+                   f"{lead_e[0].upper() + lead_e[1:]} tiene más especies que no viven en ningún otro lugar, {endemic_n[best_e]}. ")
+    lede = (f"<strong>{ranking_sentence(L, order)}</strong> " + most
+            + L.t(f"All {len(species)} hummingbird species live in the Americas, in {n_ctry} countries and territories. Open a country to see photos of every species there.",
+                  f"Las {len(species)} especies de colibríes viven en América, en {n_ctry} países y territorios. Abre un país para ver fotos de cada especie que vive ahí."))
     alternates = [("en", f"{SITE}/countries/"), ("es", f"{SITE}/es/paises/"), ("x-default", f"{SITE}/countries/")]
     ranked = [(i, v) for i, v in order if L.country_path(names[i])]
-    ld = {"@context": "https://schema.org", "@type": "ItemList", "name": title, "url": f"{SITE}/{L.cdir}/", "inLanguage": L.code,
-          "numberOfItems": len(ranked), "itemListOrder": "https://schema.org/ItemListOrderDescending",
-          "itemListElement": [{"@type": "ListItem", "position": k, "url": f"{SITE}/{L.country_path(names[i])}",
-                               "name": L.t(f"{L.country(names[i])}: {v} species", f"{L.country(names[i])}: {v} especies")}
-                              for k, (i, v) in enumerate(ranked, 1)]}
+    url = f"{SITE}/{L.cdir}/"
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "ItemList", "name": title, "url": url, "inLanguage": L.code,
+         "numberOfItems": len(ranked), "itemListOrder": "https://schema.org/ItemListOrderDescending",
+         "itemListElement": [{"@type": "ListItem", "position": k, "url": f"{SITE}/{L.country_path(names[i])}",
+                              "name": L.t(f"{L.country(names[i])}: {v} species", f"{L.country(names[i])}: {v} especies")}
+                             for k, (i, v) in enumerate(ranked, 1)]},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Hummingbirds World", "item": SITE + L.t("/", "/es/")},
+            {"@type": "ListItem", "position": 2, "name": L.t("By country", "Por país"), "item": url}]}]}
     extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
-    return (head(L, title, desc, f"{SITE}/{L.cdir}/", alternates, root, None, extra) + header(L, root, root + other.cdir + "/")
+    return (head(L, title, desc, url, alternates, root, None, extra) + header(L, root, root + other.cdir + "/")
             + f"""<main class="sp ctry">
 <nav class="crumbs" aria-label="{L.t('Breadcrumb', 'Ruta')}"><a href="{root}{L.t('', 'es/')}">Hummingbirds World</a> › {L.t('By country', 'Por país')}</nav>
 <h1>{L.t('Hummingbirds by country', 'Colibríes por país')}</h1>
 <p class="lede">{lede}</p>
-<ul class="bars ctab">{head_row}{"".join(rows)}</ul>
+<h2 id="ranking">{L.t('Countries ranked by number of species', 'Países por número de especies')}</h2>
+<div class="table-wrap">{table}</div>
 <h2>{L.t('Sources', 'Fuentes')}</h2>
 <p class="sources">{L.t(
     'Countries: BirdLife International DataZone, checked against eBird records via GBIF. Each country counts every species on its list, including visitors, as the explorer’s map does. '
@@ -330,7 +406,7 @@ def index_page(L):
     'Países: BirdLife International DataZone, comparado con registros de eBird a través de GBIF. Cada país cuenta todas las especies de su lista, incluidas las visitantes, como el mapa del explorador. '
     'Amenazadas significa Vulnerable, En peligro o En peligro crítico en la Lista Roja de la UICN (BirdLife International).')}</p>
 </main>
-""" + foot(L, root))
+{SORT_JS}""" + foot(L, root))
 
 
 if __name__ == "__main__":

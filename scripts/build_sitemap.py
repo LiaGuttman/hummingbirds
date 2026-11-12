@@ -1,4 +1,4 @@
-"""Write sitemap.xml: every species and country page in English and Spanish, with hreflang pairs.
+"""Write sitemap.xml: every species, country and taxonomy page in English and Spanish, with hreflang pairs.
 
 Each page's <lastmod> is the day its file last really changed: today if it differs from the last commit
 (or is new), otherwise the date of the last commit that touched it. Search engines use lastmod to decide
@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_species_pages import APP, SITE, L_EN, L_ES, species, paged, write
+from build_taxonomy_pages import ordered_groups
 
 
 def git(*args):
@@ -46,6 +47,7 @@ def build():
     pairs += [(L_EN.url(s), L_ES.url(s)) for s in sorted(species, key=lambda x: x["seq"])]
     pairs += [(f"{SITE}/countries/", f"{SITE}/es/paises/")]
     pairs += [(f"{SITE}/{L_EN.country_path(c)}", f"{SITE}/{L_ES.country_path(c)}") for c in sorted(paged, key=L_EN.country)]
+    pairs += [(f"{SITE}/{L_EN.tax_path(g)}", f"{SITE}/{L_ES.tax_path(g)}") for g in ordered_groups()]
     rows = []
     for en, es in pairs:
         alt = (f'<xhtml:link rel="alternate" hreflang="en" href="{en}"/><xhtml:link rel="alternate" hreflang="es" href="{es}"/>'
