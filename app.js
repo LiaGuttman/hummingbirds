@@ -119,14 +119,18 @@ function calledNames(list) {
 
 /* ---------- Setup ---------- */
 
+// The page head started these downloads (window.EARLY); without it, they start here.
 // Data files are re-checked with the server on every visit, so updates show up right away.
+const early = window.EARLY || {};
+const getJSON = (key, url, opts) => early[key] || fetch(url, opts).then((r) => r.json());
+// The world map is only drawn on the World view, so the flock doesn't wait for it: birds are placed from
+// each country's coordinates in geo.js, and the map is downloaded once the flock is drawn (see addAtlas).
 Promise.all([
-  fetch(DATA_URL, { cache: "no-cache" }).then((r) => r.json()),
-  fetch(ATLAS_URL).then((r) => r.json()).catch(() => null),
-  fetch(PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
-  fetch(OWN_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({})),
-  fetch(ML_PHOTOS_URL, { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))
-]).then(([species, atlas, photos, own, ml]) => {
+  getJSON("species", DATA_URL, { cache: "no-cache" }),
+  getJSON("photos", PHOTOS_URL, { cache: "no-cache" }).catch(() => ({})),
+  getJSON("own", OWN_PHOTOS_URL, { cache: "no-cache" }).catch(() => ({})),
+  getJSON("ml", ML_PHOTOS_URL, { cache: "no-cache" }).catch(() => ({}))
+]).then(([species, photos, own, ml]) => {
   S.species = species;
   S.photos = photos;
   S.ownPhotos = own;
@@ -138,15 +142,6 @@ Promise.all([
     s.g = { x: 0, y: 0, r: 0, a: 0, fx: 0, fy: 0, fr: 0, fa: 0, cx: 0, cy: 0,
             to: null, t0: 0, dur: 1, heading: s._rest, flap: 0, sx: 0, sy: 0 };
   });
-  if (atlas) {
-    const isoById = {};
-    for (const [iso, v] of Object.entries(GEO)) isoById[v[2]] = iso;
-    M.features = topojson.feature(atlas, atlas.objects.countries).features.filter((f) => {
-      const [lon, lat] = d3.geoCentroid(f);
-      return lon > -175 && lon < -20 && lat > -62;
-    });
-    M.features.forEach((f) => { f.iso = isoById[f.id] || null; if (f.iso) M.byIso[f.iso] = f; });
-  }
   resize();
   species.forEach((s) => { s.g.x = s.g.sx = W * 0.4 + (Math.random() - 0.5) * 40; s.g.y = s.g.sy = H / 2 + (Math.random() - 0.5) * 40; });
   bindUI();
@@ -167,7 +162,12 @@ Promise.all([
   const view = VIEWS.includes(params.get("view")) ? params.get("view") : hasCountry ? "world" : "swarm";
   setView(view, { first: true });
   if (linked && S.byCode[linked]) select(linked);
-  $("loading").classList.add("done");
+  // The loading text fades out, then leaves the page so screen readers never announce it afterwards.
+  const loading = $("loading");
+  loading.setAttribute("aria-hidden", "true");
+  loading.classList.add("done");
+  setTimeout(() => loading.remove(), 700);
+  fetch(ATLAS_URL).then((r) => r.json()).then(addAtlas).catch(() => {});
   requestAnimationFrame(frame);
 });
 
@@ -205,8 +205,24 @@ function stageRect(view) {
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
 }
 
+// Country shapes from the world map, kept to the Americas. Arrives after the flock is drawn (see Setup).
+function addAtlas(atlas) {
+  if (!atlas) return;
+  const isoById = {};
+  for (const [iso, v] of Object.entries(GEO)) isoById[v[2]] = iso;
+  M.features = topojson.feature(atlas, atlas.objects.countries).features.filter((f) => {
+    const [lon, lat] = d3.geoCentroid(f);
+    return lon > -175 && lon < -20 && lat > -62;
+  });
+  M.features.forEach((f) => { f.iso = isoById[f.id] || null; if (f.iso) M.byIso[f.iso] = f; });
+  buildMap();
+  // A country picked before the shapes arrived zooms to its point; now it can zoom to its shape.
+  if (S.view === "world" && countryFilter()) relayout({ quick: true });
+}
+
+// The projection and each country's anchor come from geo.js alone, so the World view works before
+// (or without) the map; the shapes, once loaded, add outlines and tighter zoom boxes.
 function buildMap() {
-  if (!M.features.length) return;
   const R = stageRect("world");
   M.proj = d3.geoMercator().fitExtent([[R.x0, R.y0], [R.x1, R.y1]],
     { type: "MultiPoint", coordinates: [[-124, 47], [-36, -55]] });
@@ -769,46 +785,63 @@ function ring(x, y, r, color, w) {
 }
 
 // A hummingbird reduced to a shimmering body, a bill scaled to the real bill length, a tail and blurred wings.
+// Each species is drawn as a small hummingbird: round head with an eye, tapering body, forked tail,
+// its real bill length, and two wings raised in a V (like the logo). The wings stir slowly at rest
+// and beat fast while the bird flies. The bird stays upright whichever way it faces.
+const BIRD_BODY = [[0.98, 0.05], [1.0, 0.62, 0.45, 0.62], [0.0, 0.55, -0.7, 0.3], [-1.15, 0.18], [-1.95, 0.5], [-1.6, 0.02],
+  [-1.95, -0.42], [-1.1, -0.18], [-0.45, -0.62, 0.35, -0.55], [0.95, -0.45, 0.98, 0.05]];
+// One wing, turned by t about the shoulder (0 = folded back along the body, π/2 = straight up).
+function wingShape(t, len) {
+  const R = (a, b) => [0.15 + a * Math.cos(t) + b * Math.sin(t), 0.35 - a * Math.sin(t) + b * Math.cos(t)];
+  return [R(0.1, 0.05), [...R(-len * 0.45, 0.42), ...R(-len, 0.12)], [...R(-len * 0.55, -0.12), ...R(-0.05, -0.12)]];
+}
+function tracePath(c, P, pts) {
+  c.beginPath();
+  c.moveTo(...P(...pts[0]));
+  for (const p of pts.slice(1)) {
+    if (p.length === 4) c.quadraticCurveTo(...P(p[0], p[1]), ...P(p[2], p[3]));
+    else c.lineTo(...P(...p));
+  }
+  c.closePath();
+}
 function drawBird(c, s, x, y, r, a, h, flap, now) {
   if (r < 0.3 || !Number.isFinite(x + y + r)) return;
   const [c1, c2] = SUB[s.subfamily].c;
   const ch = Math.cos(h), sh = Math.sin(h);
-  c.globalAlpha = a;
-
-  if (flap > 0.08) {
-    const beat = 0.6 + 0.4 * Math.sin(now * 0.09 + s._ph);
-    c.fillStyle = `rgba(255,255,255,${0.18 * flap})`;
-    c.beginPath(); c.ellipse(x - ch * r * 0.2, y - sh * r * 0.2, r * 0.55, r * (1.2 + 0.9 * beat), h, 0, Math.PI * 2); c.fill();
-  }
-  // Tail
-  c.fillStyle = c1;
-  c.globalAlpha = a * 0.8;
-  const bx = x - ch * r * 0.8, by = y - sh * r * 0.8;
-  c.beginPath();
-  c.moveTo(bx - sh * r * 0.35, by + ch * r * 0.35);
-  c.lineTo(bx + sh * r * 0.35, by - ch * r * 0.35);
-  c.lineTo(x - ch * r * 1.75, y - sh * r * 1.75);
-  c.closePath(); c.fill();
-  c.globalAlpha = a;
+  let ux = sh, uy = -ch;
+  if (uy > 0) { ux = -ux; uy = -uy; }
+  const u = r * 0.8;
+  const P = (along, up) => [x + (ch * along + ux * up) * u, y + (sh * along + uy * up) * u];
+  // A gradient that slowly turns, so the color shifts like iridescence.
+  const shine = (offset) => {
+    const ang = (now + offset) * 0.0011 + s._ph;
+    const gx = Math.cos(ang) * r * 1.4, gy = Math.sin(ang) * r * 1.4;
+    const g = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
+    g.addColorStop(0, c1); g.addColorStop(0.5, c2); g.addColorStop(1, c1);
+    return g;
+  };
+  const wings = r > 1.6;
+  const beat = Math.sin(now * (flap > 0.1 ? 0.06 : 0.004) + s._ph);
+  const t1 = 1.05 + 0.25 * beat * (0.3 + 0.7 * flap);
+  // Far wing
+  if (wings) { c.globalAlpha = a * 0.6; c.fillStyle = c2; tracePath(c, P, wingShape(t1 + 0.45, 1.6)); c.fill(); }
   // Bill
-  const bill = r * (0.35 + (s.bill || 18) / 30);
+  const bill = 0.35 + (s.bill || 18) / 30;
+  c.globalAlpha = a;
   c.strokeStyle = "rgba(235,232,220,0.9)";
-  c.lineWidth = Math.max(0.7, r * 0.17);
+  c.lineWidth = Math.max(0.7, r * 0.15);
   c.lineCap = "round";
-  c.beginPath(); c.moveTo(x + ch * r * 0.9, y + sh * r * 0.9); c.lineTo(x + ch * (r + bill), y + sh * (r + bill)); c.stroke();
-  // Body with a gradient that slowly turns, so the color shifts like iridescence
-  const ang = now * 0.0011 + s._ph;
-  const gx = Math.cos(ang) * r * 1.1, gy = Math.sin(ang) * r * 1.1;
-  const grad = c.createLinearGradient(x - gx, y - gy, x + gx, y + gy);
-  grad.addColorStop(0, c1); grad.addColorStop(0.5, c2); grad.addColorStop(1, c1);
-  c.fillStyle = grad;
-  c.beginPath(); c.ellipse(x, y, r * 1.12, r * 0.88, h, 0, Math.PI * 2);
-  if (s.extinct) { c.globalAlpha = a * 0.25; c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
-  else c.fill();
-  // Glint
-  if (r > 2.5) {
-    c.fillStyle = "rgba(255,255,255,0.55)";
-    c.beginPath(); c.arc(x + ch * r * 0.35 + sh * r * 0.3, y + sh * r * 0.35 - ch * r * 0.3, r * 0.18, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.moveTo(...P(0.95, 0.12)); c.lineTo(...P(0.95 + bill, 0.02)); c.stroke();
+  // Body
+  tracePath(c, P, BIRD_BODY);
+  if (s.extinct) { c.globalAlpha = a * 0.25; c.fillStyle = shine(0); c.fill(); c.globalAlpha = a; c.strokeStyle = c2; c.lineWidth = 1; c.stroke(); }
+  else { c.fillStyle = shine(0); c.fill(); }
+  if (r > 3) { c.fillStyle = "rgba(10,14,30,0.85)"; c.beginPath(); c.arc(...P(0.6, 0.25), Math.max(0.6, r * 0.09), 0, Math.PI * 2); c.fill(); }
+  // Near wing
+  if (wings) {
+    c.globalAlpha = s.extinct ? a * 0.4 : a;
+    c.fillStyle = shine(900); tracePath(c, P, wingShape(t1, 1.75)); c.fill();
+    c.fillStyle = "rgba(255,255,255,0.18)"; c.fill();
   }
   c.globalAlpha = 1;
 }
@@ -1187,6 +1220,7 @@ function bindPanels() {
     stopWander(); popTo(+b.dataset.i);
   });
   $("sheetBtn").addEventListener("click", () => { stopWander(); S.sheet = true; renderPanel(); });
+  $("countries").addEventListener("scroll", stripEdges, { passive: true });
   $("countries").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-iso]"); if (!b) return;
     stopWander(); pushFilter(countryFilterFor(b.dataset.iso));
@@ -1228,6 +1262,7 @@ function bindPanels() {
   };
   refit();
   new ResizeObserver(refit).observe($("hint"));
+  new ResizeObserver(stripEdges).observe($("countries"));
   document.fonts?.ready.then(refit);
   window.visualViewport?.addEventListener("resize", () => setTimeout(refit, 150));
 
@@ -1338,6 +1373,14 @@ function renderCountries() {
   for (const s of S.species) for (const d of s.dist) names[d.iso] = shortCountry(d.c);
   el.innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1])
     .map(([iso, n]) => `<button data-iso="${iso}" ${cf && cf.iso === iso ? 'class="on"' : ""}>${esc(names[iso])}<b>${n}</b></button>`).join("");
+  stripEdges();
+}
+
+// The strip scrolls sideways; its edges fade wherever more countries are hidden, so it's clear there's more.
+function stripEdges() {
+  const el = $("countries");
+  el.classList.toggle("more-l", el.scrollLeft > 2);
+  el.classList.toggle("more-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
 }
 
 function dot(s, cls = "") { const [a, b] = SUB[s.subfamily].c; return `<i class="${cls}" style="background:linear-gradient(135deg,${a},${b})"></i>`; }
@@ -1611,7 +1654,7 @@ function cardHTML(s) {
   <h2><a class="titlelink" href="${pageOf(s)}" title="${tx("Open the species page", "Abrir la página de la especie")}">${esc(nameOf(s))}<svg class="info" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg></a></h2>
   <div class="sci big">${esc(s.sci)}</div>
   <div class="es">${ES ? "Inglés: " : ""}${esc(otherName(s))}${s.ioc_name ? ` · IOC: ${esc(s.ioc_name)}` : ""}</div>
-  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
+  <p class="links">${s.endemic ? `<span class="endemic">${tx(`Endemic: found only in ${esc(shortCountry(s.endemic))}, one of ${onlyIn(s.endemic).length} species`, `Endémico: solo vive en ${esc(shortCountry(s.endemic))}, una de ${onlyIn(s.endemic).length} especies`)}</span>` : ""}<a class="ext" href="${pageOf(s)}">${tx("Species page", "Página de la especie")} →</a><a class="ext" href="https://ebird.org/species/${encodeURIComponent(s.code)}${ES ? "?siteLanguage=es_MX" : ""}" target="_blank" rel="noopener">${tx("eBird page", "Página en eBird")} ↗</a></p>
 
   <h3>${tx("At a glance", "De un vistazo")}</h3>
   <dl class="facts">

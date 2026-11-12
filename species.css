@@ -54,6 +54,11 @@ main.sp {
 .photo { margin: 0 0 22px; }
 .photo img { display: block; width: 100%; height: auto; max-height: 560px; object-fit: contain; border-radius: 14px; background: rgba(0,0,0,0.25); }
 .photo.ml iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 14px; background: #fff; }
+.video { margin: 0; }
+.video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 14px; background: #000; }
+.video.tall iframe { aspect-ratio: 9 / 16; max-width: 340px; }
+.video figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.video figcaption a { color: var(--muted); }
 .photo figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
 .photo figcaption a { color: var(--muted); }
 .nophoto { color: var(--muted); font-style: italic; }

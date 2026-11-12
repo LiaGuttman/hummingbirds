@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · Hummingbirds World</title>
+<meta name="robots" content="noindex">
+<!-- GitHub Pages serves this page for every unknown URL, at any depth, so every path here starts at the site root. -->
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/species.css?v=2026-10-16a">
+</head>
+<body>
+<header class="site"><a class="brand" href="/"><img class="logo" src="/logo-light.svg" alt=""><span>Hummingbirds World</span></a>
+<nav class="tools"><a class="lang" href="/es/" hreflang="es" lang="es"><span class="wide">Español</span><span class="narrow">ES</span></a>
+<a class="explore" href="/"><span class="wide">Open the explorer</span><span class="narrow">Explorer</span></a></nav></header>
+<main class="sp idx" id="en">
+<h1>This page flew away</h1>
+<p class="lede">There's no page at this address. It may have moved, or the link may have a typo. Try one of these instead:</p>
+<ul class="list" style="columns: 1; line-height: 1.5">
+<li style="margin-bottom: 8px"><a href="/">The explorer</a>: all the species as a flock, by family tree, map, size and status</li>
+<li style="margin-bottom: 8px"><a href="/species/">All 363 species</a>, each with its own page</li>
+<li style="margin-bottom: 8px"><a href="/countries/">Hummingbirds by country</a></li>
+</ul>
+</main>
+<main class="sp idx" id="es" lang="es" hidden>
+<h1>Esta página se fue volando</h1>
+<p class="lede">No hay ninguna página en esta dirección. Puede que se haya movido o que el enlace tenga un error. Prueba con una de estas:</p>
+<ul class="list" style="columns: 1; line-height: 1.5">
+<li style="margin-bottom: 8px"><a href="/es/">El explorador</a>: todas las especies como una bandada, por árbol familiar, mapa, tamaño y estado</li>
+<li style="margin-bottom: 8px"><a href="/es/especies/">Las 363 especies</a>, cada una con su propia página</li>
+<li style="margin-bottom: 8px"><a href="/es/paises/">Colibríes por país</a></li>
+</ul>
+</main>
+<footer class="site">
+<p>A personal, non-commercial project by Lia Guttman. Contact: <a href="mailto:lia@hummingbirds.world">lia@hummingbirds.world</a></p>
+</footer>
+<script>
+// Addresses under /es/ get the Spanish text, the Spanish explorer and an English switch.
+if (location.pathname.startsWith("/es/")) {
+  document.documentElement.lang = "es";
+  document.title = "Página no encontrada · Hummingbirds World";
+  document.getElementById("en").hidden = true;
+  document.getElementById("es").hidden = false;
+  document.querySelector(".brand").href = "/es/";
+  document.querySelector(".explore").href = "/es/";
+  document.querySelector(".explore .wide").textContent = "Abrir el explorador";
+  document.querySelector(".explore .narrow").textContent = "Explorador";
+  const lang = document.querySelector(".lang");
+  lang.href = "/"; lang.hreflang = "en"; lang.lang = "en";
+  lang.querySelector(".wide").textContent = "English"; lang.querySelector(".narrow").textContent = "EN";
+  document.querySelector("footer p").innerHTML = 'Un proyecto personal y sin fines comerciales de Lia Guttman. Contacto: <a href="mailto:lia@hummingbirds.world">lia@hummingbirds.world</a>';
+}
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f690c0c8331140bf9ef76125f66b0722"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
